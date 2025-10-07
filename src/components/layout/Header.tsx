@@ -2,14 +2,13 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { Search, Bell, Sun, Moon, Grid3x3, User, LogOut, Menu } from "lucide-react";
+import { User, LogOut, Menu } from "lucide-react";
 import useLogout from "@/app/(auth)/signout/hooks/useLogout";
 
-export default function Header({ onMobileMenuToggle, sidebarCollapsed }) {
+export default function Header({ onMobileMenuToggle, sidebarCollapsed }: any) {
   const [isMounted, setIsMounted] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout, loading } = useLogout();
 
   useEffect(() => {
@@ -56,48 +55,23 @@ export default function Header({ onMobileMenuToggle, sidebarCollapsed }) {
           />
         </div>
 
-        {/* Rest of header */}
-        <div className="flex-1 flex items-center justify-end px-6 gap-4">
-          <div className="flex items-center gap-3">
-            <button className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F5F7FA] transition-colors">
-              <Search className="w-4 h-4 text-[#525B75]" />
-            </button>
-            <button className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F5F7FA] transition-colors">
-              <Bell className="w-4 h-4 text-[#525B75]" />
-            </button>
-            <button className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F5F7FA] transition-colors">
-              {isDarkMode ? (
-                <Moon className="w-4 h-4 text-[#525B75]" />
-              ) : (
-                <Sun className="w-4 h-4 text-[#525B75]" />
-              )}
-            </button>
+        {/* Mobile logo */}
+        <div className="lg:hidden flex items-center pl-2 md:pl-4 flex-1">
+          <Image
+            src="/images/component_icons/header/header_logo.png"
+            alt="Certificate Generator"
+            width={80}
+            height={24}
+            className="object-contain"
+          />
+        </div>
 
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                className="w-6 md:w-8 h-6 md:h-8 mt-2 rounded-full flex items-center justify-center bg-[#F5F7FA] hover:ring-2 hover:ring-[#3874FF] hover:ring-opacity-30 transition-all"
-              >
-                <User className="w-4 h-4 text-[#525B75]" />
-              </button>
+        {/* Spacer */}
+        <div className="flex-1"></div>
 
-              {/* Profile Dropdown */}
-              {isProfileDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-[#E5E9F0] rounded-lg shadow-lg z-50">
-                  <div className="py-1">
-                    <button
-                      onClick={handleLogout}
-                      disabled={loading}
-                      className="w-full text-left px-4 py-2 text-sm text-[#525B75] hover:bg-[#F5F7FA] transition-colors flex items-center gap-2 disabled:opacity-50"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      {loading ? "Logging out..." : "Logout"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Profile placeholder */}
+        <div className="flex items-center gap-3 pr-3 md:pr-4 lg:pr-6">
+          <div className="w-8 md:w-10 h-8 md:h-10 rounded-full bg-[#F5F7FA]"></div>
         </div>
       </header>
     );
@@ -144,59 +118,24 @@ export default function Header({ onMobileMenuToggle, sidebarCollapsed }) {
       <div className="lg:hidden flex items-center pl-2 md:pl-4 flex-1">
         <Image
           src="/images/component_icons/header/header_logo.png"
-          alt="D&O Admin Panel"
+          alt="Certificate Generator"
           width={80}
           height={24}
           className="object-contain md:w-[100px] md:h-[28px]"
         />
       </div>
 
-      {/* Center - Search Bar (hidden on mobile) */}
-      <div className="hidden lg:flex flex-1 justify-center px-6">
-        <div className="relative w-full max-w-md">
-          <div className="flex items-center bg-[#F5F7FA] rounded-xl px-4 py-2.5 gap-3 w-full">
-            <Search className="w-4 h-4 text-[#8A94AD]" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="bg-transparent outline-none text-sm text-[#525B75] placeholder-[#8A94AD] flex-1"
-            />
-          </div>
-        </div>
-      </div>
+      {/* Spacer - takes remaining space */}
+      <div className="flex-1"></div>
 
-      {/* Right side - Icons */}
-      <div className="flex items-center gap-1 md:gap-2 lg:gap-3 pr-3 md:pr-4 lg:pr-6">
-        {/* Search button for mobile */}
-        <button className="lg:hidden w-6 md:w-8 h-6 md:h-8 flex items-center justify-center rounded-lg hover:bg-[#F5F7FA] transition-colors">
-          <Search className="w-4 h-4 text-[#525B75]" />
-        </button>
-
-        <button 
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="w-6 md:w-8 h-6 md:h-8 flex items-center justify-center rounded-lg hover:bg-[#F5F7FA] transition-colors"
-        >
-          {isDarkMode ? (
-            <Moon className="w-4 h-4 text-[#525B75]" />
-          ) : (
-            <Sun className="w-4 h-4 text-[#525B75]" />
-          )}
-        </button>
-
-        <button className="w-6 md:w-8 h-6 md:h-8 flex items-center justify-center rounded-lg hover:bg-[#F5F7FA] transition-colors">
-          <Bell className="w-4 h-4 text-[#525B75]" />
-        </button>
-
-        <button className="hidden sm:flex w-6 md:w-8 h-6 md:h-8 items-center justify-center rounded-lg hover:bg-[#F5F7FA] transition-colors">
-          <Grid3x3 className="w-4 h-4 text-[#525B75]" />
-        </button>
-
+      {/* Right side - Profile Icon */}
+      <div className="flex items-center gap-3 pr-3 md:pr-4 lg:pr-6">
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-            className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center bg-[#F5F7FA] hover:ring-2 hover:ring-[#3874FF] hover:ring-opacity-30 transition-all"
+            className="w-8 md:w-10 h-8 md:h-10 rounded-full flex items-center justify-center bg-[#F5F7FA] hover:ring-2 hover:ring-[#3874FF] hover:ring-opacity-30 transition-all"
           >
-            <User className="w-4 h-4 text-[#525B75]" />
+            <User className="w-5 h-5 text-[#525B75]" />
           </button>
 
           {/* Profile Dropdown */}

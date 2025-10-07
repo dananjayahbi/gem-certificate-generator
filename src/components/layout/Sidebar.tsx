@@ -9,7 +9,6 @@ import {
   Users, 
   Settings, 
   Palette, 
-  BarChart3,
   FolderOpen,
   UserCircle,
   X,
@@ -23,6 +22,7 @@ const navigationGroups = [
     title: '',
     items: [
       {
+        id: 'dashboard',
         name: 'Dashboard',
         href: '/',
         icon: Home
@@ -33,24 +33,22 @@ const navigationGroups = [
     title: 'CERTIFICATES',
     items: [
       {
+        id: 'all-certificates',
         name: 'All Certificates',
         href: '/certificates',
         icon: Award
       },
       {
-        name: 'Create Certificate',
+        id: 'issue-certificate',
+        name: 'Issue Certificate',
         href: '/certificates/create',
         icon: FileText
       },
       {
-        name: 'Certificate Templates',
+        id: 'certificate-template',
+        name: 'Certificate Template',
         href: '/cert-design',
         icon: Palette
-      },
-      {
-        name: 'Certificate Analytics',
-        href: '/certificates/analytics',
-        icon: BarChart3
       }
     ]
   },
@@ -58,19 +56,16 @@ const navigationGroups = [
     title: 'MANAGEMENT',
     items: [
       {
+        id: 'users',
         name: 'Users',
         href: '/users',
         icon: Users
       },
       {
+        id: 'user-profile',
         name: 'User Profile',
         href: '/user-profile',
         icon: UserCircle
-      },
-      {
-        name: 'Manage Templates',
-        href: '/cert-mgmt',
-        icon: FolderOpen
       }
     ]
   },
@@ -78,6 +73,7 @@ const navigationGroups = [
     title: 'SYSTEM',
     items: [
       {
+        id: 'settings',
         name: 'Settings',
         href: '/settings',
         icon: Settings
@@ -86,11 +82,16 @@ const navigationGroups = [
   }
 ]
 
-export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileToggle }) {
+export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileToggle }: any) {
   const pathname = usePathname()
 
-  const isActiveRoute = (href) => {
-    return pathname === href || pathname.startsWith(href + '/')
+  const isActiveRoute = (href: string) => {
+    // Exact match for home/dashboard
+    if (href === '/') {
+      return pathname === '/';
+    }
+    // Exact match for all other routes
+    return pathname === href;
   }
 
   return (
