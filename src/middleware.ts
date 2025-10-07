@@ -10,9 +10,33 @@ const publicPaths = ['/login', '/signout', '/reset-password'];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip API routes - they handle their own auth
+  // For API routes, verify token and add headers but don't redirect
   if (pathname.startsWith('/api')) {
-    return NextResponse.next();
+    const token = request.cookies.get('access_token')?.value;
+    
+    if (!token) {
+      // API routes can handle missing auth themselves
+      return NextResponse.next();
+    }
+
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      
+      // Add user info to headers for API routes
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-user-id', payload.userId as string);
+      requestHeaders.set('x-user-email', payload.email as string);
+      requestHeaders.set('x-user-role', payload.role as string);
+
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
+    } catch (error) {
+      // Token invalid, let API route handle it
+      return NextResponse.next();
+    }
   }
 
   // Allow public paths without authentication

@@ -8,10 +8,11 @@ export const API_ENDPOINTS = {
 
   // User Endpoints
   USER: {
-    // PROFILE: '/api/users/profile/',
-    // STATS: (userId) => `/api/users/${userId}/stats/`,
-    // PERMISSIONS: '/api/users/permissions/',
-    // UPDATE_PROFILE: '/api/users/profile/',
+    LIST: '/api/users',
+    CREATE: '/api/users',
+    DETAIL: (id: string) => `/api/users/${id}`,
+    UPDATE: (id: string) => `/api/users/${id}`,
+    DELETE: (id: string) => `/api/users/${id}`,
   },
 
   // Add more endpoint groups as needed
