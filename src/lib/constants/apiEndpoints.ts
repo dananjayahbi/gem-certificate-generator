@@ -6,6 +6,12 @@ export const API_ENDPOINTS = {
     LOGOUT: '/api/token/logout/',
   },
 
+  // Profile Endpoints
+  PROFILE: {
+    GET: '/api/profile',
+    UPDATE: '/api/profile',
+  },
+
   // User Endpoints
   USER: {
     LIST: '/api/users',
