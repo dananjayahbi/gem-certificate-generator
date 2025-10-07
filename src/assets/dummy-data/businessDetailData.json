@@ -1,0 +1,72 @@
+{
+  "businessName": "Business Name Here",
+  "licenseInformation": {
+    "businessName": "TechCorp Inc.",
+    "domain": "techcorp.com",
+    "planType": "Enterprise",
+    "country": "United States",
+    "licenseStatus": "Active",
+    "expiryDate": "December 15, 2024"
+  },
+  "complianceStatus": {
+    "geoCompliance": {
+      "status": "approved",
+      "text": "All regions allowed"
+    },
+    "userLimits": {
+      "status": "approved", 
+      "text": "Within allowed range"
+    },
+    "scanLimits": {
+      "status": "approved",
+      "text": "Normal usage"
+    }
+  },
+  "adminDetails": {
+    "name": "Carlos Arias",
+    "email": "abc@domain.com",
+    "password": "abc@abc",
+    "usage": "10,000"
+  },
+  "usageLimits": {
+    "scansUsed": 15247,
+    "scansTotal": 50000,
+    "scansLabel": "Scans Used",
+    "activeUsers": 2,
+    "activeUsersLabel": "Active Users",
+    "vendors": 8,
+    "vendorsLabel": "Vendors"
+  },
+  "recentActivity": [
+    {
+      "id": 1,
+      "title": "Batch scan completed",
+      "description": "Systems account · 1 hour ago",
+      "iconType": "search"
+    },
+    {
+      "id": 2,
+      "title": "New user added",
+      "description": "John Doe · 2 hours ago",
+      "iconType": "user"
+    },
+    {
+      "id": 3,
+      "title": "Vendor database updated",
+      "description": "29 new vendors added · 6 hours ago",
+      "iconType": "database"
+    }
+  ],
+  "billingInformation": {
+    "monthlyRevenue": 2499,
+    "overageRevenue": 0,
+    "nextBillingDate": "September 15, 2024",
+    "paymentStatus": "Paid"
+  },
+  "quickActions": [
+    "Extend License",
+    "Modify Plan", 
+    "Export Data",
+    "Revoke License"
+  ]
+}
