@@ -30,12 +30,11 @@ model User {
 }
 
 model Certificate {
-  id          String   @id @default(cuid())
+  id            String   @id @default(cuid())
+  templateId    String
   recipientName String
-  courseName    String
-  issueDate     DateTime @default(now())
-  certificateNumber String @unique
-  templateId    String?
+  fieldValues   String   // JSON string containing field data
+  pdfUrl        String?
   createdBy     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -44,13 +43,16 @@ model Certificate {
 }
 
 model CertificateTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  templateData String  // JSON string containing template design
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  name               String
+  description        String?
+  backgroundImageUrl String
+  width              Float    // Width in mm
+  height             Float    // Height in mm
+  fields             String   // JSON string containing field definitions
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@map("certificate_templates")
 }

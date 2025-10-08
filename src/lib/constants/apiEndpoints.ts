@@ -21,6 +21,24 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/api/users/${id}`,
   },
 
+  // Template Endpoints
+  TEMPLATE: {
+    LIST: '/api/templates',
+    CREATE: '/api/templates',
+    DETAIL: (id: string) => `/api/templates/${id}`,
+    UPDATE: (id: string) => `/api/templates/${id}`,
+    DELETE: (id: string) => `/api/templates/${id}`,
+  },
+
+  // Certificate Endpoints
+  CERTIFICATE: {
+    LIST: '/api/certificates',
+    CREATE: '/api/certificates',
+    DETAIL: (id: string) => `/api/certificates/${id}`,
+    DELETE: (id: string) => `/api/certificates/${id}`,
+    REGENERATE: (id: string) => `/api/certificates/${id}/regenerate`,
+  },
+
   // Add more endpoint groups as needed
 };
 
