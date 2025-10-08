@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
     // Generate UUID for new template if not provided
     const folderUuid = templateId || uuidv4();
     
-    // Create directory path: public/certificate-templates/[uuid]
-    const uploadsDir = path.join(process.cwd(), 'public', 'certificate-templates', folderUuid);
+    // Create directory path: src/assets/certificate-templates/[uuid]
+    const uploadsDir = path.join(process.cwd(), 'src', 'assets', 'certificate-templates', folderUuid);
     
     // Create directory if it doesn't exist
     if (!existsSync(uploadsDir)) {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Delete old file if it exists
     if (oldFilePath) {
-      const oldFileFullPath = path.join(process.cwd(), 'public', oldFilePath);
+      const oldFileFullPath = path.join(process.cwd(), 'src', 'assets', oldFilePath.replace('/api/assets/', ''));
       if (existsSync(oldFileFullPath)) {
         try {
           await unlink(oldFileFullPath);
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
-    // Return web-accessible URL path (relative to public folder)
-    const webPath = `/certificate-templates/${folderUuid}/${newFileName}`;
+    // Return API-accessible URL path
+    const webPath = `/api/assets/certificate-templates/${folderUuid}/${newFileName}`;
 
     return NextResponse.json({
       success: true,
@@ -85,7 +85,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const fullPath = path.join(process.cwd(), 'public', filePath);
+    const fullPath = path.join(process.cwd(), 'src', 'assets', filePath.replace('/api/assets/', ''));
     
     if (existsSync(fullPath)) {
       await unlink(fullPath);

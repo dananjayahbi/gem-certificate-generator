@@ -23,6 +23,7 @@
     "@types/uuid": "^11.0.0",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
+    "canvas": "^3.2.0",
     "clsx": "^2.1.1",
     "cookies-next": "^6.1.0",
     "file-saver": "^2.0.5",

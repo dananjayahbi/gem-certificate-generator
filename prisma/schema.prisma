@@ -30,14 +30,16 @@ model User {
 }
 
 model Certificate {
-  id            String   @id @default(cuid())
-  templateId    String
-  recipientName String
-  fieldValues   String   // JSON string containing field data
-  pdfUrl        String?
-  createdBy     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String   @id @default(cuid())
+  certificateNumber String?  @unique  // Short, unique certificate ID (e.g., CERT-2024-001)
+  templateId        String
+  recipientName     String
+  issuedTo          String?   // Person/organization the certificate is issued to
+  fieldValues       String   // JSON string containing field data
+  pdfUrl            String?
+  createdBy         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("certificates")
 }
