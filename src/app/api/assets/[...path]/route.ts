@@ -41,6 +41,9 @@ export async function GET(
       png: 'image/png',
       pdf: 'application/pdf',
       svg: 'image/svg+xml',
+      ttf: 'font/ttf',
+      woff: 'font/woff',
+      woff2: 'font/woff2',
     };
 
     const contentType = contentTypes[ext || ''] || 'application/octet-stream';

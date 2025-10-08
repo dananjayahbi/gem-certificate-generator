@@ -1,5 +1,6 @@
 import type { TemplateField } from '@/services/certificateTemplateService';
 import { mmToPx } from '../utils/conversions';
+import { getFontFamilyWithFallback } from '../utils/fontUtils';
 
 interface PreviewProps {
   backgroundImage: string;
@@ -86,7 +87,7 @@ export default function Preview({
                       fontSize: `${field.fontSize * scale}px`,
                       color: field.color,
                       fontWeight: field.fontWeight,
-                      fontFamily: field.fontFamily,
+                      fontFamily: getFontFamilyWithFallback(field.fontFamily || 'TimesRoman'),
                       textAlign: field.align as any,
                       display: 'flex',
                       alignItems: 'center',

@@ -2,6 +2,7 @@ import { RefObject } from 'react';
 import { ImageIcon, Upload } from 'lucide-react';
 import type { TemplateField } from '@/services/certificateTemplateService';
 import { mmToPx } from '../utils/conversions';
+import { getFontFamilyWithFallback } from '../utils/fontUtils';
 
 interface CanvasProps {
   backgroundImage: string;
@@ -89,6 +90,15 @@ export default function Canvas({
               <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Ctrl</kbd> + 
               <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Left-Click & Drag</kbd> to pan
             </span>
+            <span className="mx-2">•</span>
+            <span>
+              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Arrow Keys</kbd> to move field (0.5mm)
+            </span>
+            <span className="mx-2">•</span>
+            <span>
+              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Shift</kbd> + 
+              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Arrow</kbd> for 1mm steps
+            </span>
           </p>
         </div>
         
@@ -164,6 +174,7 @@ export default function Canvas({
                           fontSize: `${field.fontSize * scale}px`,
                           color: field.color,
                           fontWeight: field.fontWeight,
+                          fontFamily: getFontFamilyWithFallback(field.fontFamily || 'TimesRoman'),
                         }}
                       >
                         {field.placeholder || field.name}

@@ -1,6 +1,8 @@
 import { RefObject } from 'react';
 import { Type, Calendar, Move, ImageIcon, Upload, Trash2, Save } from 'lucide-react';
 import type { TemplateField } from '@/services/certificateTemplateService';
+import FontSelector from './FontSelector';
+import { FontInfo } from '@/hooks/useFonts';
 
 interface PropertiesPanelProps {
   templateName: string;
@@ -12,6 +14,8 @@ interface PropertiesPanelProps {
   loading: boolean;
   isEditing: boolean;
   signatureInputRef: RefObject<HTMLInputElement>;
+  fonts: FontInfo[];
+  fontsLoading: boolean;
   onTemplateNameChange: (name: string) => void;
   onTemplateDescriptionChange: (description: string) => void;
   onTemplateWidthChange: (width: number) => void;
@@ -22,6 +26,9 @@ interface PropertiesPanelProps {
   onFieldDelete: (fieldId: string) => void;
   onHistoryAdd: (fields: TemplateField[]) => void;
   onSignatureUploadClick: () => void;
+  onFontUpload: (file: File) => Promise<{ success: boolean; error?: string }>;
+  onFontDelete: (fontName: string) => Promise<{ success: boolean; error?: string }>;
+  onToast: (options: { title: string; description: string; variant: 'success' | 'error' | 'info' }) => void;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -36,6 +43,8 @@ export default function PropertiesPanel({
   loading,
   isEditing,
   signatureInputRef,
+  fonts,
+  fontsLoading,
   onTemplateNameChange,
   onTemplateDescriptionChange,
   onTemplateWidthChange,
@@ -46,6 +55,9 @@ export default function PropertiesPanel({
   onFieldDelete,
   onHistoryAdd,
   onSignatureUploadClick,
+  onFontUpload,
+  onFontDelete,
+  onToast,
   onSave,
   onCancel,
 }: PropertiesPanelProps) {
@@ -205,6 +217,16 @@ export default function PropertiesPanel({
 
             {selectedField.type === 'text' && (
               <>
+                <FontSelector
+                  value={selectedField.fontFamily || 'TimesRoman'}
+                  fonts={fonts}
+                  loading={fontsLoading}
+                  onChange={(fontName) => onFieldUpdateWithHistory(selectedFieldId!, { fontFamily: fontName })}
+                  onUpload={onFontUpload}
+                  onDelete={onFontDelete}
+                  onToast={onToast}
+                />
+
                 <div>
                   <label className="block text-xs font-medium mb-1">Font Size</label>
                   <input

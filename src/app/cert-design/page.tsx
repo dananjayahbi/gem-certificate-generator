@@ -11,6 +11,7 @@ import {
   generateFieldId,
 } from '@/services/certificateTemplateService';
 import { useToast } from '@/hooks/useToast';
+import { useFonts } from '@/hooks/useFonts';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import TemplateSelector from './components/TemplateSelector';
 import Canvas from './components/Canvas';
@@ -18,10 +19,12 @@ import PropertiesPanel from './components/PropertiesPanel';
 import FullPageLayout from './components/FullPageLayout';
 import Preview from './components/Preview';
 import HorizontalPropertiesPanel from './components/HorizontalPropertiesPanel';
+import FontSelector from './components/FontSelector';
 import { mmToPx, pxToMm } from './utils/conversions';
 
 export default function CertificateDesignerPage() {
   const { toast } = useToast();
+  const { fonts, loading: fontsLoading, uploadFont, deleteFont } = useFonts();
   const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<CertificateTemplate | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -75,17 +78,46 @@ export default function CertificateDesignerPage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFieldId) {
-        const target = e.target as HTMLElement;
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          deleteField(selectedFieldId);
+      const target = e.target as HTMLElement;
+      const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      
+      // Delete/Backspace to delete field
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFieldId && !isInputFocused) {
+        e.preventDefault();
+        deleteField(selectedFieldId);
+      }
+      
+      // Arrow keys to move selected field
+      if (selectedFieldId && !isInputFocused && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        const field = fields.find(f => f.id === selectedFieldId);
+        if (field) {
+          const moveAmount = e.shiftKey ? 1 : 0.5; // Hold Shift for 1mm, normal for 0.5mm
+          let newX = field.x;
+          let newY = field.y;
+          
+          switch (e.key) {
+            case 'ArrowUp':
+              newY = Math.max(0, field.y - moveAmount);
+              break;
+            case 'ArrowDown':
+              newY = field.y + moveAmount;
+              break;
+            case 'ArrowLeft':
+              newX = Math.max(0, field.x - moveAmount);
+              break;
+            case 'ArrowRight':
+              newX = field.x + moveAmount;
+              break;
+          }
+          
+          updateFieldWithHistory(selectedFieldId, { x: newX, y: newY });
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedFieldId]);
+  }, [selectedFieldId, fields]);
 
   // Zoom with Ctrl+Wheel
   useEffect(() => {
@@ -100,6 +132,37 @@ export default function CertificateDesignerPage() {
     window.addEventListener('wheel', handleWheel, { passive: false });
     return () => window.removeEventListener('wheel', handleWheel);
   }, []);
+
+  // Auto-fit scale to certificate width at 100%
+  useEffect(() => {
+    const calculateFitScale = () => {
+      if (canvasContainerRef.current && templateWidth > 0 && backgroundImage) {
+        const containerWidth = canvasContainerRef.current.clientWidth;
+        const padding = 48; // Account for padding in the container (p-6 = 24px each side)
+        const availableWidth = containerWidth - padding;
+        
+        // Convert certificate width from mm to pixels at scale 1
+        const certWidthPx = templateWidth * 3.7795275591;
+        
+        // Calculate scale to fit width
+        const fitScale = availableWidth / certWidthPx;
+        
+        // Set scale, but clamp between 0.5 and 2 for reasonable limits
+        const clampedScale = Math.max(0.5, Math.min(2, fitScale));
+        setScale(clampedScale);
+      }
+    };
+
+    // Use setTimeout to ensure DOM is fully rendered
+    const timer = setTimeout(calculateFitScale, 100);
+
+    // Recalculate on window resize
+    window.addEventListener('resize', calculateFitScale);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', calculateFitScale);
+    };
+  }, [templateWidth, backgroundImage, isFullPageMode]); // Re-run when template or mode changes
 
   // Canvas panning handlers
   const handleCanvasPanStart = (e: React.MouseEvent) => {
@@ -495,6 +558,8 @@ export default function CertificateDesignerPage() {
               loading={loading}
               isEditing={isEditing}
               signatureInputRef={signatureInputRef}
+              fonts={fonts}
+              fontsLoading={fontsLoading}
               onTemplateNameChange={setTemplateName}
               onTemplateDescriptionChange={setTemplateDescription}
               onTemplateWidthChange={setTemplateWidth}
@@ -505,6 +570,9 @@ export default function CertificateDesignerPage() {
               onFieldDelete={deleteField}
               onHistoryAdd={addToHistory}
               onSignatureUploadClick={() => signatureInputRef.current?.click()}
+              onFontUpload={uploadFont}
+              onFontDelete={deleteFont}
+              onToast={toast}
               onSave={handleSaveTemplate}
               onCancel={resetForm}
             />
@@ -616,6 +684,8 @@ export default function CertificateDesignerPage() {
           loading={loading}
           isEditing={isEditing}
           signatureInputRef={signatureInputRef}
+          fonts={fonts}
+          fontsLoading={fontsLoading}
           onTemplateNameChange={setTemplateName}
           onTemplateDescriptionChange={setTemplateDescription}
           onTemplateWidthChange={setTemplateWidth}
@@ -626,6 +696,9 @@ export default function CertificateDesignerPage() {
           onFieldDelete={deleteField}
           onHistoryAdd={addToHistory}
           onSignatureUploadClick={() => signatureInputRef.current?.click()}
+          onFontUpload={uploadFont}
+          onFontDelete={deleteFont}
+          onToast={toast}
           onSave={handleSaveTemplate}
           onCancel={resetForm}
         />
