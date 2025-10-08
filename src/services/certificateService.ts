@@ -114,12 +114,27 @@ export async function generateCertificatePDF(
         });
       } else if (field.type === 'image' || field.type === 'signature') {
         // Handle image fields (signatures)
-        if (value && value.startsWith('data:image')) {
+        const imageUrl = field.signatureImageUrl || value;
+        if (imageUrl) {
           let image;
-          if (value.startsWith('data:image/png')) {
-            image = await pdfDoc.embedPng(value);
+          
+          // Check if it's a data URL (base64) or a file path
+          if (imageUrl.startsWith('data:image')) {
+            // Base64 image
+            if (imageUrl.startsWith('data:image/png')) {
+              image = await pdfDoc.embedPng(imageUrl);
+            } else {
+              image = await pdfDoc.embedJpg(imageUrl);
+            }
           } else {
-            image = await pdfDoc.embedJpg(value);
+            // File path - fetch it
+            const imageBytes = await fetch(imageUrl).then((res) => res.arrayBuffer());
+            const imageType = imageUrl.toLowerCase();
+            if (imageType.endsWith('.png')) {
+              image = await pdfDoc.embedPng(imageBytes);
+            } else {
+              image = await pdfDoc.embedJpg(imageBytes);
+            }
           }
 
           const width = field.width ? mmToPoints(field.width) : 50;

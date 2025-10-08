@@ -184,24 +184,46 @@ export async function deleteTemplate(id: string): Promise<void> {
  * Upload background image for certificate template
  * This function converts an image file to base64 and returns the data URL
  */
-export async function uploadBackgroundImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-      } else {
-        reject(new Error('Failed to read file'));
-      }
+/**
+ * Upload a background image or signature image for a certificate template
+ * @param file - The image file to upload
+ * @param templateId - Optional template ID (UUID). If not provided, a new UUID is generated
+ * @param fileType - Type of file: 'background', 'signature', or 'image'
+ * @param oldFilePath - Optional path to old file to delete (when replacing)
+ * @returns The web-accessible file path and template ID
+ */
+export async function uploadBackgroundImage(
+  file: File,
+  templateId?: string,
+  fileType: 'background' | 'signature' | 'image' = 'background',
+  oldFilePath?: string
+): Promise<{ filePath: string; templateId: string }> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('fileType', fileType);
+    if (templateId) formData.append('templateId', templateId);
+    if (oldFilePath) formData.append('oldFilePath', oldFilePath);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    return {
+      filePath: data.filePath,
+      templateId: data.templateId,
     };
-    
-    reader.onerror = () => {
-      reject(new Error('Failed to read file'));
-    };
-    
-    reader.readAsDataURL(file);
-  });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
 }
 
 /**

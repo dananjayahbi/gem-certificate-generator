@@ -27,6 +27,7 @@ export default function CertificateDesignerPage() {
   const [templateWidth, setTemplateWidth] = useState(297);
   const [templateHeight, setTemplateHeight] = useState(210);
   const [fields, setFields] = useState<TemplateField[]>([]);
+  const [templateUuid, setTemplateUuid] = useState<string>(''); // UUID for the template folder
   
   const [scale, setScale] = useState(1);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
@@ -114,8 +115,9 @@ export default function CertificateDesignerPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const dataUrl = await uploadBackgroundImage(file);
-      setBackgroundImage(dataUrl);
+      const result = await uploadBackgroundImage(file, templateUuid, 'background', backgroundImage || undefined);
+      setBackgroundImage(result.filePath);
+      setTemplateUuid(result.templateId); // Store the UUID for future uploads
       setTemplateWidth(297);
       setTemplateHeight(210);
       toast({ title: 'Success', description: 'Background image uploaded', variant: 'success' });
@@ -129,12 +131,19 @@ export default function CertificateDesignerPage() {
     const file = e.target.files?.[0];
     if (!file || !selectedFieldId) return;
     try {
-      const dataUrl = await uploadBackgroundImage(file);
-      const newFields = fields.map(field => 
-        field.id === selectedFieldId ? { ...field, signatureImageUrl: dataUrl } : field
+      const field = fields.find(f => f.id === selectedFieldId);
+      const result = await uploadBackgroundImage(
+        file, 
+        templateUuid, 
+        'signature', 
+        field?.signatureImageUrl || undefined
+      );
+      const newFields = fields.map(f => 
+        f.id === selectedFieldId ? { ...f, signatureImageUrl: result.filePath } : f
       );
       setFields(newFields);
       addToHistory(newFields);
+      setTemplateUuid(result.templateId); // Store the UUID for future uploads
       toast({ title: 'Success', description: 'Image uploaded', variant: 'success' });
     } catch (error) {
       console.error('Error uploading signature:', error);
@@ -329,6 +338,14 @@ export default function CertificateDesignerPage() {
     setSelectedFieldId(null);
     setHistory([template.fields]);
     setHistoryIndex(0);
+    
+    // Extract UUID from backgroundImageUrl (e.g., /certificate-templates/[uuid]/...)
+    if (template.backgroundImageUrl) {
+      const match = template.backgroundImageUrl.match(/\/certificate-templates\/([^\/]+)\//);
+      if (match) {
+        setTemplateUuid(match[1]);
+      }
+    }
   };
 
   const resetForm = () => {
@@ -343,6 +360,7 @@ export default function CertificateDesignerPage() {
     setSelectedFieldId(null);
     setHistory([]);
     setHistoryIndex(-1);
+    setTemplateUuid(''); // Reset UUID for new template
   };
 
   const confirmDeleteTemplate = async () => {
