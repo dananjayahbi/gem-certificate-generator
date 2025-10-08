@@ -86,43 +86,71 @@ export default function Page() {
 
   const handlePrint = async (cert: Certificate) => {
     try {
-      toast({ title: 'Info', description: 'Preparing certificate for print...', variant: 'info' });
+      toast({ title: 'Info', description: 'Preparing to print...', variant: 'info' });
       
-      const response = await fetch(`/api/certificates/${cert.id}/generate?format=pdf`);
-      if (!response.ok) throw new Error('Failed to generate certificate');
+      // Fetch PDF as blob and convert to data URI to avoid download managers
+      const response = await fetch(`/api/certificates/${cert.id}/generate?format=pdf&disposition=inline`);
+      if (!response.ok) throw new Error('Failed to generate PDF');
       
       const blob = await response.blob();
-      const pdfUrl = URL.createObjectURL(blob);
       
-      // Create hidden iframe for printing
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = '0';
-      iframe.src = pdfUrl;
-      document.body.appendChild(iframe);
-      
-      iframe.onload = () => {
-        setTimeout(() => {
-          try {
-            iframe.contentWindow?.focus();
-            iframe.contentWindow?.print();
-          } catch (e) {
-            console.error('Print error:', e);
-            window.open(pdfUrl, '_blank');
-          }
-        }, 1000);
+      // Convert blob to base64 data URI
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        const base64data = reader.result as string;
+        
+        // Open a popup window with the PDF
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        if (!printWindow) {
+          toast({ 
+            title: 'Popup Blocked', 
+            description: 'Please allow popups to print certificates', 
+            variant: 'error' 
+          });
+          return;
+        }
+        
+        // Write HTML with PDF object
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Print Certificate</title>
+              <style>
+                body, html {
+                  margin: 0;
+                  padding: 0;
+                  height: 100%;
+                  width: 100%;
+                  overflow: hidden;
+                }
+                object {
+                  width: 100%;
+                  height: 100%;
+                }
+              </style>
+            </head>
+            <body>
+              <object data="${base64data}" type="application/pdf" width="100%" height="100%">
+                <p>PDF cannot be displayed. Please update your browser.</p>
+              </object>
+              <script>
+                window.addEventListener('load', function() {
+                  setTimeout(function() {
+                    window.print();
+                  }, 1000);
+                });
+              </script>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
       };
       
-      // Clean up after a delay
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        URL.revokeObjectURL(pdfUrl);
-      }, 5000);
+      reader.readAsDataURL(blob);
     } catch (error) {
+      console.error('Print error:', error);
       toast({ title: 'Error', description: 'Failed to print certificate', variant: 'error' });
     }
   };

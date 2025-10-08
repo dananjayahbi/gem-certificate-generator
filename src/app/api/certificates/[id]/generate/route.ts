@@ -175,11 +175,15 @@ export async function GET(
     const pdfBytes = await pdfDoc.save();
     console.log('PDF bytes generated:', pdfBytes.byteLength);
     
+    // Check if this is for printing (inline) or downloading (attachment)
+    const { searchParams } = new URL(request.url);
+    const disposition = searchParams.get('disposition') || 'attachment';
+    
     // Return PDF directly as binary response
     return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="certificate-${certificate.certificateNumber || id}.pdf"`,
+        'Content-Disposition': `${disposition}; filename="certificate-${certificate.certificateNumber || id}.pdf"`,
       },
     });
   } catch (error) {
