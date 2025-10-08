@@ -1,15 +1,29 @@
 "use client";
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
-const ToastContext = createContext();
+interface Toast {
+  id: string;
+  title?: string;
+  description?: string;
+  variant?: 'default' | 'success' | 'error' | 'warning' | 'info';
+  duration?: number;
+}
 
-export const ToastProvider = ({ children }) => {
-  const [toasts, setToasts] = useState([]);
+interface ToastContextType {
+  toast: (toast: Omit<Toast, 'id'>) => void;
+  toasts: Toast[];
+  removeToast: (id: string) => void;
+}
 
-  const toast = ({ title, description, variant = "default", duration = 5000 }) => {
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+export const ToastProvider = ({ children }: { children: ReactNode }) => {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const toast = ({ title, description, variant = "default", duration = 5000 }: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).substr(2, 9);
-    const newToast = { id, title, description, variant, duration };
+    const newToast: Toast = { id, title, description, variant, duration };
     
     setToasts(prev => [...prev, newToast]);
 
@@ -19,7 +33,7 @@ export const ToastProvider = ({ children }) => {
     }, duration);
   };
 
-  const removeToast = (id) => {
+  const removeToast = (id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
@@ -31,7 +45,7 @@ export const ToastProvider = ({ children }) => {
   );
 };
 
-const ToastContainer = ({ toasts, removeToast }) => {
+const ToastContainer = ({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) => {
   if (toasts.length === 0) return null;
 
   return (
@@ -43,7 +57,7 @@ const ToastContainer = ({ toasts, removeToast }) => {
   );
 };
 
-const ToastComponent = ({ toast, onRemove }) => {
+const ToastComponent = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) => {
   const variants = {
     default: "bg-white border-gray-200",
     success: "bg-green-50 border-green-200 text-green-800",
