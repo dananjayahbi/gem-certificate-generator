@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 import Header from './Header'
@@ -14,6 +14,13 @@ export default function NavigationLayout({ children }) {
   const isAuthPage = pathname.startsWith('/login') || 
                      pathname.startsWith('/signout') || 
                      pathname.startsWith('/reset-password')
+
+  // Auto-collapse sidebar for cert-design page
+  useEffect(() => {
+    if (pathname === '/cert-design') {
+      setSidebarCollapsed(true)
+    }
+  }, [pathname])
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed)

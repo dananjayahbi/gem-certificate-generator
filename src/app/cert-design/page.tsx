@@ -36,6 +36,11 @@ export default function CertificateDesignerPage() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, fieldX: 0, fieldY: 0 });
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, fieldX: 0, fieldY: 0, corner: '' });
   
+  // Canvas panning state
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  
   // Undo/Redo history
   const [history, setHistory] = useState<TemplateField[][]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -72,6 +77,60 @@ export default function CertificateDesignerPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedFieldId]);
+
+  // Zoom with Ctrl+Wheel
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey && canvasContainerRef.current?.contains(e.target as Node)) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        setScale(prevScale => Math.max(0.5, Math.min(3, prevScale + delta)));
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  // Canvas panning handlers
+  const handleCanvasPanStart = (e: React.MouseEvent) => {
+    if (e.ctrlKey && e.button === 2 && canvasContainerRef.current) {
+      e.preventDefault();
+      setIsPanning(true);
+      setPanStart({
+        x: e.clientX,
+        y: e.clientY,
+        scrollLeft: canvasContainerRef.current.scrollLeft,
+        scrollTop: canvasContainerRef.current.scrollTop,
+      });
+    }
+  };
+
+  const handleCanvasPanMove = (e: React.MouseEvent) => {
+    if (isPanning && canvasContainerRef.current) {
+      e.preventDefault();
+      const dx = e.clientX - panStart.x;
+      const dy = e.clientY - panStart.y;
+      canvasContainerRef.current.scrollLeft = panStart.scrollLeft - dx;
+      canvasContainerRef.current.scrollTop = panStart.scrollTop - dy;
+    }
+  };
+
+  const handleCanvasPanEnd = () => {
+    setIsPanning(false);
+  };
+
+  // Prevent context menu when Ctrl+Right-click
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      if (e.ctrlKey && canvasContainerRef.current?.contains(e.target as Node)) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('contextmenu', handleContextMenu);
+    return () => window.removeEventListener('contextmenu', handleContextMenu);
+  }, []);
 
   const addToHistory = (newFields: TemplateField[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
@@ -411,7 +470,7 @@ export default function CertificateDesignerPage() {
       />
       
       <div className="mb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Certificate Template Designer</h1>
             <p className="text-gray-600 mt-2">Create and customize certificate templates</p>
@@ -437,59 +496,61 @@ export default function CertificateDesignerPage() {
             </button>
           </div>
         </div>
-      </div>
-
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-3">
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold">Templates</h2>
+        
+        {/* Templates Dropdown Section */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-2">Select Template</label>
+              <select
+                value={selectedTemplate?.id || ''}
+                onChange={(e) => {
+                  const template = templates.find(t => t.id === e.target.value);
+                  if (template) loadTemplate(template);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              >
+                <option value="">-- Select a template to edit --</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name} ({template.fields.length} fields)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-2 mt-6">
               <button
                 onClick={resetForm}
-                className="px-3 py-1 bg-amber-500 text-white rounded text-sm hover:bg-amber-600"
+                className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center gap-2 whitespace-nowrap"
               >
-                New
+                <Plus size={16} />
+                New Template
               </button>
-            </div>
-            <div className="space-y-2">
-              {loading && <div className="text-sm text-gray-500">Loading...</div>}
-              {templates.map((template) => (
-                <div
-                  key={template.id}
-                  className={`group relative rounded ${
-                    selectedTemplate?.id === template.id ? 'bg-amber-50 border border-amber-500' : 'hover:bg-gray-100'
-                  }`}
+              {selectedTemplate && (
+                <button
+                  onClick={() => {
+                    setDeleteModal({
+                      isOpen: true,
+                      templateId: selectedTemplate.id,
+                      templateName: selectedTemplate.name,
+                    });
+                  }}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center gap-2 whitespace-nowrap"
+                  title="Delete selected template"
                 >
-                  <button
-                    onClick={() => loadTemplate(template)}
-                    className="w-full text-left px-3 py-2"
-                  >
-                    <div className="font-medium">{template.name}</div>
-                    <div className="text-xs text-gray-500">{template.fields.length} fields</div>
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteModal({
-                        isOpen: true,
-                        templateId: template.id,
-                        templateName: template.name,
-                      });
-                    }}
-                    className="absolute right-2 top-2 p-1 text-red-600 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Delete template"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="col-span-6">
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-9">
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-2">
               <h2 className="font-semibold">Canvas</h2>
               <div className="flex items-center gap-2">
                 <label className="text-sm">Scale:</label>
@@ -506,6 +567,22 @@ export default function CertificateDesignerPage() {
               </div>
             </div>
             
+            {/* Canvas Controls Help */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800">
+                <strong>💡 Canvas Controls:</strong> 
+                <span className="ml-2">
+                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Ctrl</kbd> + 
+                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Scroll</kbd> to zoom
+                </span>
+                <span className="mx-2">•</span>
+                <span>
+                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Ctrl</kbd> + 
+                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Right-Click & Drag</kbd> to pan
+                </span>
+              </p>
+            </div>
+            
             {!backgroundImage ? (
               <div className="flex flex-col items-center py-20 border-2 border-dashed border-gray-300 rounded">
                 <ImageIcon size={48} className="text-gray-400 mb-4" />
@@ -519,7 +596,15 @@ export default function CertificateDesignerPage() {
                 <p className="text-xs text-gray-500 mt-2">Recommended: A4 size (297mm x 210mm)</p>
               </div>
             ) : (
-              <div className="overflow-auto max-h-[600px]">
+              <div 
+                ref={canvasContainerRef}
+                className="overflow-auto max-h-[600px]"
+                onMouseDown={handleCanvasPanStart}
+                onMouseMove={handleCanvasPanMove}
+                onMouseUp={handleCanvasPanEnd}
+                onMouseLeave={handleCanvasPanEnd}
+                style={{ cursor: isPanning ? 'grabbing' : 'default' }}
+              >
                 <div
                   ref={canvasRef}
                   className="relative bg-white shadow-lg mx-auto"
