@@ -26,6 +26,7 @@ interface CanvasProps {
   onCanvasPanStart: (e: React.MouseEvent) => void;
   onCanvasPanMove: (e: React.MouseEvent) => void;
   onCanvasPanEnd: () => void;
+  className?: string;
 }
 
 export default function Canvas({
@@ -51,11 +52,12 @@ export default function Canvas({
   onCanvasPanStart,
   onCanvasPanMove,
   onCanvasPanEnd,
+  className = "col-span-9",
 }: CanvasProps) {
   const convertMmToPx = (mm: number) => mmToPx(mm, scale);
 
   return (
-    <div className="col-span-9">
+    <div className={className}>
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-semibold">Canvas</h2>
@@ -105,7 +107,7 @@ export default function Canvas({
         ) : (
           <div 
             ref={canvasContainerRef}
-            className="overflow-auto max-h-[600px]"
+            className="overflow-auto"
             onMouseDown={onCanvasPanStart}
             onMouseMove={onCanvasPanMove}
             onMouseUp={onCanvasPanEnd}

@@ -15,6 +15,9 @@ import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import TemplateSelector from './components/TemplateSelector';
 import Canvas from './components/Canvas';
 import PropertiesPanel from './components/PropertiesPanel';
+import FullPageLayout from './components/FullPageLayout';
+import Preview from './components/Preview';
+import HorizontalPropertiesPanel from './components/HorizontalPropertiesPanel';
 import { mmToPx, pxToMm } from './utils/conversions';
 
 export default function CertificateDesignerPage() {
@@ -31,6 +34,9 @@ export default function CertificateDesignerPage() {
   const [templateHeight, setTemplateHeight] = useState(210);
   const [fields, setFields] = useState<TemplateField[]>([]);
   const [templateUuid, setTemplateUuid] = useState<string>(''); // UUID for the template folder
+  
+  // Full-page mode state
+  const [isFullPageMode, setIsFullPageMode] = useState(false);
   
   const [scale, setScale] = useState(1);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
@@ -448,8 +454,108 @@ export default function CertificateDesignerPage() {
     }
   };
 
+  // Render full-page mode
+  if (isFullPageMode) {
+    return (
+      <>
+        <ConfirmationModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, templateId: '', templateName: '' })}
+          onConfirm={confirmDeleteTemplate}
+          title="Delete Template"
+          message={`Are you sure you want to delete "${deleteModal.templateName}"? This action cannot be undone.`}
+          confirmText="confirm"
+          requireTyping={true}
+        />
+        
+        <FullPageLayout
+          header={
+            <TemplateSelector
+              templates={templates}
+              selectedTemplate={selectedTemplate}
+              onTemplateSelect={loadTemplate}
+              onNewTemplate={resetForm}
+              onDeleteTemplate={(id, name) => setDeleteModal({ isOpen: true, templateId: id, templateName: name })}
+              onUndo={undo}
+              onRedo={redo}
+              canUndo={historyIndex > 0}
+              canRedo={historyIndex < history.length - 1}
+              isFullPageMode={isFullPageMode}
+              onToggleFullPage={() => setIsFullPageMode(!isFullPageMode)}
+            />
+          }
+          properties={
+            <HorizontalPropertiesPanel
+              templateName={templateName}
+              templateDescription={templateDescription}
+              templateWidth={templateWidth}
+              templateHeight={templateHeight}
+              fields={fields}
+              selectedFieldId={selectedFieldId}
+              loading={loading}
+              isEditing={isEditing}
+              signatureInputRef={signatureInputRef}
+              onTemplateNameChange={setTemplateName}
+              onTemplateDescriptionChange={setTemplateDescription}
+              onTemplateWidthChange={setTemplateWidth}
+              onTemplateHeightChange={setTemplateHeight}
+              onAddField={addField}
+              onFieldUpdate={updateField}
+              onFieldUpdateWithHistory={updateFieldWithHistory}
+              onFieldDelete={deleteField}
+              onHistoryAdd={addToHistory}
+              onSignatureUploadClick={() => signatureInputRef.current?.click()}
+              onSave={handleSaveTemplate}
+              onCancel={resetForm}
+            />
+          }
+          canvas={
+            <Canvas
+              backgroundImage={backgroundImage}
+              templateWidth={templateWidth}
+              templateHeight={templateHeight}
+              scale={scale}
+              fields={fields}
+              selectedFieldId={selectedFieldId}
+              isDragging={isDragging}
+              isResizing={isResizing}
+              isPanning={isPanning}
+              canvasContainerRef={canvasContainerRef}
+              canvasRef={canvasRef}
+              fileInputRef={fileInputRef}
+              onScaleChange={setScale}
+              onUploadClick={() => fileInputRef.current?.click()}
+              onFieldClick={setSelectedFieldId}
+              onFieldMouseDown={handleFieldMouseDown}
+              onResizeMouseDown={handleResizeMouseDown}
+              onCanvasMouseMove={handleMouseMove}
+              onCanvasMouseUp={handleMouseUp}
+              onCanvasPanStart={handleCanvasPanStart}
+              onCanvasPanMove={handleCanvasPanMove}
+              onCanvasPanEnd={handleCanvasPanEnd}
+              className="w-full"
+            />
+          }
+          preview={
+            <Preview
+              backgroundImage={backgroundImage}
+              templateWidth={templateWidth}
+              templateHeight={templateHeight}
+              scale={scale}
+              fields={fields}
+            />
+          }
+        />
+        
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+        <input ref={signatureInputRef} type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" />
+      </>
+    );
+  }
+
+  // Render normal mode
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50">
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, templateId: '', templateName: '' })}
@@ -470,6 +576,8 @@ export default function CertificateDesignerPage() {
         onRedo={redo}
         canUndo={historyIndex > 0}
         canRedo={historyIndex < history.length - 1}
+        isFullPageMode={isFullPageMode}
+        onToggleFullPage={() => setIsFullPageMode(!isFullPageMode)}
       />
 
       <div className="grid grid-cols-12 gap-6">

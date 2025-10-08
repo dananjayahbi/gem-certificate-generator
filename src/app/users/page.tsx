@@ -67,7 +67,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
+    <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-[#141824]">
           Users Management

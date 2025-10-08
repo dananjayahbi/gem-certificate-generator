@@ -1,4 +1,4 @@
-import { Plus, Trash2, Undo, Redo } from 'lucide-react';
+import { Plus, Trash2, Undo, Redo, Maximize2, Minimize2 } from 'lucide-react';
 import type { CertificateTemplate } from '@/services/certificateTemplateService';
 
 interface TemplateSelectorProps {
@@ -11,6 +11,8 @@ interface TemplateSelectorProps {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  isFullPageMode?: boolean;
+  onToggleFullPage?: () => void;
 }
 
 export default function TemplateSelector({
@@ -23,6 +25,8 @@ export default function TemplateSelector({
   onRedo,
   canUndo,
   canRedo,
+  isFullPageMode = false,
+  onToggleFullPage,
 }: TemplateSelectorProps) {
   return (
     <div className="mb-6">
@@ -32,6 +36,16 @@ export default function TemplateSelector({
           <p className="text-gray-600 mt-2">Create and customize certificate templates</p>
         </div>
         <div className="flex gap-2">
+          {onToggleFullPage && (
+            <button
+              onClick={onToggleFullPage}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+              title={isFullPageMode ? "Exit Full Page Mode" : "Enter Full Page Mode"}
+            >
+              {isFullPageMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              {isFullPageMode ? 'Exit Full Page' : 'Full Page Mode'}
+            </button>
+          )}
           <button
             onClick={onUndo}
             disabled={!canUndo}
