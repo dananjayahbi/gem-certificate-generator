@@ -85,7 +85,7 @@ export default function Canvas({
             <span className="mx-2">•</span>
             <span>
               <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Ctrl</kbd> + 
-              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Right-Click & Drag</kbd> to pan
+              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Left-Click & Drag</kbd> to pan
             </span>
           </p>
         </div>

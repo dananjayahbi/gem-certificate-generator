@@ -26,18 +26,12 @@ export function useCanvasPan(
   panStart: PanState
 ) {
   useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      if (e.ctrlKey && canvasContainerRef.current?.contains(e.target as Node)) {
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener('contextmenu', handleContextMenu);
-    return () => window.removeEventListener('contextmenu', handleContextMenu);
+    // No longer need to prevent context menu since we're not using right-click
+    return () => {};
   }, [canvasContainerRef]);
 
   const handleCanvasPanStart = (e: React.MouseEvent) => {
-    if (e.ctrlKey && e.button === 2 && canvasContainerRef.current) {
+    if (e.ctrlKey && e.button === 0 && canvasContainerRef.current) {
       e.preventDefault();
       return {
         isPanning: true,

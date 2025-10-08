@@ -97,7 +97,7 @@ export default function CertificateDesignerPage() {
 
   // Canvas panning handlers
   const handleCanvasPanStart = (e: React.MouseEvent) => {
-    if (e.ctrlKey && e.button === 2 && canvasContainerRef.current) {
+    if (e.ctrlKey && e.button === 0 && canvasContainerRef.current) {
       e.preventDefault();
       setIsPanning(true);
       setPanStart({
@@ -122,18 +122,6 @@ export default function CertificateDesignerPage() {
   const handleCanvasPanEnd = () => {
     setIsPanning(false);
   };
-
-  // Prevent context menu when Ctrl+Right-click
-  useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      if (e.ctrlKey && canvasContainerRef.current?.contains(e.target as Node)) {
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener('contextmenu', handleContextMenu);
-    return () => window.removeEventListener('contextmenu', handleContextMenu);
-  }, []);
 
   const addToHistory = (newFields: TemplateField[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
