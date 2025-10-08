@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Save, X, Move, Type, Calendar, ImageIcon, Upload, Trash2, Undo, Redo } from 'lucide-react';
 import {
   type CertificateTemplate,
   type TemplateField,
@@ -13,6 +12,10 @@ import {
 } from '@/services/certificateTemplateService';
 import { useToast } from '@/hooks/useToast';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import TemplateSelector from './components/TemplateSelector';
+import Canvas from './components/Canvas';
+import PropertiesPanel from './components/PropertiesPanel';
+import { mmToPx, pxToMm } from './utils/conversions';
 
 export default function CertificateDesignerPage() {
   const { toast } = useToast();
@@ -255,8 +258,8 @@ export default function CertificateDesignerPage() {
     toast({ title: 'Field deleted', description: 'Field removed from template', variant: 'info', duration: 2000 });
   };
 
-  const mmToPx = (mm: number) => mm * 3.7795275591 * scale;
-  const pxToMm = (px: number) => px * 0.264583 / scale;
+  const convertMmToPx = (mm: number) => mmToPx(mm, scale);
+  const convertPxToMm = (px: number) => pxToMm(px, scale);
 
   const handleFieldMouseDown = (e: React.MouseEvent, fieldId: string) => {
     if (isResizing) return;
@@ -292,15 +295,15 @@ export default function CertificateDesignerPage() {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging && selectedFieldId && !isResizing) {
-      const deltaX = pxToMm(e.clientX - dragStart.x);
-      const deltaY = pxToMm(e.clientY - dragStart.y);
+      const deltaX = convertPxToMm(e.clientX - dragStart.x);
+      const deltaY = convertPxToMm(e.clientY - dragStart.y);
       updateField(selectedFieldId, {
         x: Math.max(0, Math.min(templateWidth, dragStart.fieldX + deltaX)),
         y: Math.max(0, Math.min(templateHeight, dragStart.fieldY + deltaY)),
       });
     } else if (isResizing && selectedFieldId) {
-      const deltaX = pxToMm(e.clientX - resizeStart.x);
-      const deltaY = pxToMm(e.clientY - resizeStart.y);
+      const deltaX = convertPxToMm(e.clientX - resizeStart.x);
+      const deltaY = convertPxToMm(e.clientY - resizeStart.y);
       let newWidth = resizeStart.width;
       let newHeight = resizeStart.height;
       let newX = resizeStart.fieldX;
@@ -469,490 +472,67 @@ export default function CertificateDesignerPage() {
         requireTyping={true}
       />
       
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Certificate Template Designer</h1>
-            <p className="text-gray-600 mt-2">Create and customize certificate templates</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={undo}
-              disabled={historyIndex <= 0}
-              className="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo size={16} />
-              Undo
-            </button>
-            <button
-              onClick={redo}
-              disabled={historyIndex >= history.length - 1}
-              className="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo size={16} />
-              Redo
-            </button>
-          </div>
-        </div>
-        
-        {/* Templates Dropdown Section */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium mb-2">Select Template</label>
-              <select
-                value={selectedTemplate?.id || ''}
-                onChange={(e) => {
-                  const template = templates.find(t => t.id === e.target.value);
-                  if (template) loadTemplate(template);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-              >
-                <option value="">-- Select a template to edit --</option>
-                {templates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name} ({template.fields.length} fields)
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={resetForm}
-                className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center gap-2 whitespace-nowrap"
-              >
-                <Plus size={16} />
-                New Template
-              </button>
-              {selectedTemplate && (
-                <button
-                  onClick={() => {
-                    setDeleteModal({
-                      isOpen: true,
-                      templateId: selectedTemplate.id,
-                      templateName: selectedTemplate.name,
-                    });
-                  }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center gap-2 whitespace-nowrap"
-                  title="Delete selected template"
-                >
-                  <Trash2 size={16} />
-                  Delete
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <TemplateSelector
+        templates={templates}
+        selectedTemplate={selectedTemplate}
+        onTemplateSelect={loadTemplate}
+        onNewTemplate={resetForm}
+        onDeleteTemplate={(id, name) => setDeleteModal({ isOpen: true, templateId: id, templateName: name })}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < history.length - 1}
+      />
 
       <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-9">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-semibold">Canvas</h2>
-              <div className="flex items-center gap-2">
-                <label className="text-sm">Scale:</label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                  value={scale}
-                  onChange={(e) => setScale(parseFloat(e.target.value))}
-                  className="w-32"
-                />
-                <span className="text-sm">{Math.round(scale * 100)}%</span>
-              </div>
-            </div>
-            
-            {/* Canvas Controls Help */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs text-blue-800">
-                <strong>💡 Canvas Controls:</strong> 
-                <span className="ml-2">
-                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Ctrl</kbd> + 
-                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Scroll</kbd> to zoom
-                </span>
-                <span className="mx-2">•</span>
-                <span>
-                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Ctrl</kbd> + 
-                  <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Right-Click & Drag</kbd> to pan
-                </span>
-              </p>
-            </div>
-            
-            {!backgroundImage ? (
-              <div className="flex flex-col items-center py-20 border-2 border-dashed border-gray-300 rounded">
-                <ImageIcon size={48} className="text-gray-400 mb-4" />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-6 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 flex items-center gap-2"
-                >
-                  <Upload size={20} />
-                  Upload Background
-                </button>
-                <p className="text-xs text-gray-500 mt-2">Recommended: A4 size (297mm x 210mm)</p>
-              </div>
-            ) : (
-              <div 
-                ref={canvasContainerRef}
-                className="overflow-auto max-h-[600px]"
-                onMouseDown={handleCanvasPanStart}
-                onMouseMove={handleCanvasPanMove}
-                onMouseUp={handleCanvasPanEnd}
-                onMouseLeave={handleCanvasPanEnd}
-                style={{ cursor: isPanning ? 'grabbing' : 'default' }}
-              >
-                <div
-                  ref={canvasRef}
-                  className="relative bg-white shadow-lg mx-auto"
-                  style={{
-                    width: mmToPx(templateWidth),
-                    height: mmToPx(templateHeight),
-                    backgroundImage: `url(${backgroundImage})`,
-                    backgroundSize: 'cover',
-                  }}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                >
-                  {fields.map((field) => {
-                    const isSelected = selectedFieldId === field.id;
-                    return (
-                      <div
-                        key={field.id}
-                        onClick={() => setSelectedFieldId(field.id)}
-                        onMouseDown={(e) => handleFieldMouseDown(e, field.id)}
-                        className={`absolute group ${
-                          isSelected ? 'ring-2 ring-amber-500 z-10' : 'border border-blue-300'
-                        } ${!isResizing && !isDragging ? 'cursor-move' : ''}`}
-                        style={{
-                          left: mmToPx(field.x),
-                          top: mmToPx(field.y),
-                          width: mmToPx(field.width || 50),
-                          height: mmToPx(field.height || 25),
-                          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                        }}
-                      >
-                        {field.type === 'signature' && field.signatureImageUrl ? (
-                          <img 
-                            src={field.signatureImageUrl} 
-                            className="w-full h-full object-contain pointer-events-none" 
-                            alt="Signature" 
-                          />
-                        ) : field.type === 'image' && field.signatureImageUrl ? (
-                          <img 
-                            src={field.signatureImageUrl} 
-                            className="w-full h-full object-contain pointer-events-none" 
-                            alt="Image" 
-                          />
-                        ) : (
-                          <div 
-                            className="text-xs p-1 pointer-events-none flex items-center justify-center h-full"
-                            style={{
-                              fontSize: `${field.fontSize * scale}px`,
-                              color: field.color,
-                              fontWeight: field.fontWeight,
-                            }}
-                          >
-                            {field.placeholder || field.name}
-                          </div>
-                        )}
-                        
-                        {isSelected && (
-                          <>
-                            <div
-                              className="absolute w-2 h-2 bg-amber-500 rounded-full cursor-nw-resize -top-1 -left-1"
-                              onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'nw')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-amber-500 rounded-full cursor-ne-resize -top-1 -right-1"
-                              onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'ne')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-amber-500 rounded-full cursor-sw-resize -bottom-1 -left-1"
-                              onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'sw')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-amber-500 rounded-full cursor-se-resize -bottom-1 -right-1"
-                              onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'se')}
-                            />
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <Canvas
+          backgroundImage={backgroundImage}
+          templateWidth={templateWidth}
+          templateHeight={templateHeight}
+          scale={scale}
+          fields={fields}
+          selectedFieldId={selectedFieldId}
+          isDragging={isDragging}
+          isResizing={isResizing}
+          isPanning={isPanning}
+          canvasContainerRef={canvasContainerRef}
+          canvasRef={canvasRef}
+          fileInputRef={fileInputRef}
+          onScaleChange={setScale}
+          onUploadClick={() => fileInputRef.current?.click()}
+          onFieldClick={setSelectedFieldId}
+          onFieldMouseDown={handleFieldMouseDown}
+          onResizeMouseDown={handleResizeMouseDown}
+          onCanvasMouseMove={handleMouseMove}
+          onCanvasMouseUp={handleMouseUp}
+          onCanvasPanStart={handleCanvasPanStart}
+          onCanvasPanMove={handleCanvasPanMove}
+          onCanvasPanEnd={handleCanvasPanEnd}
+        />
 
-        <div className="col-span-3">
-          <div className="bg-white rounded-lg shadow p-4 space-y-4">
-            <h2 className="font-semibold">Properties</h2>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Template Name</label>
-              <input
-                type="text"
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
-                placeholder="e.g., GIA Certificate"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                value={templateDescription}
-                onChange={(e) => setTemplateDescription(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
-                rows={2}
-                placeholder="Template description..."
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-medium mb-1">Width (mm)</label>
-                <input
-                  type="number"
-                  value={templateWidth}
-                  onChange={(e) => setTemplateWidth(Number(e.target.value))}
-                  className="w-full px-2 py-1 border rounded text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Height (mm)</label>
-                <input
-                  type="number"
-                  value={templateHeight}
-                  onChange={(e) => setTemplateHeight(Number(e.target.value))}
-                  className="w-full px-2 py-1 border rounded text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="border-t pt-4">
-              <h3 className="text-sm font-semibold mb-2">Add Field</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button 
-                  onClick={() => addField('text')} 
-                  className="px-3 py-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-2"
-                >
-                  <Type size={16} />
-                  Text
-                </button>
-                <button 
-                  onClick={() => addField('date')} 
-                  className="px-3 py-2 bg-green-50 text-green-700 rounded hover:bg-green-100 flex items-center gap-2"
-                >
-                  <Calendar size={16} />
-                  Date
-                </button>
-                <button 
-                  onClick={() => addField('signature')} 
-                  className="px-3 py-2 bg-purple-50 text-purple-700 rounded hover:bg-purple-100 flex items-center gap-2"
-                >
-                  <Move size={16} />
-                  Signature
-                </button>
-                <button 
-                  onClick={() => addField('image')} 
-                  className="px-3 py-2 bg-amber-50 text-amber-700 rounded hover:bg-amber-100 flex items-center gap-2"
-                >
-                  <ImageIcon size={16} />
-                  Image
-                </button>
-              </div>
-            </div>
-
-            {selectedFieldId && (() => {
-              const field = fields.find(f => f.id === selectedFieldId);
-              if (!field) return null;
-              
-              return (
-                <div className="border-t pt-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">Selected Field</h3>
-                    <button
-                      onClick={() => deleteField(selectedFieldId)}
-                      className="text-red-600 hover:text-red-700"
-                      title="Delete (or press Delete key)"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Field Name</label>
-                    <input
-                      type="text"
-                      value={field.name}
-                      onChange={(e) => updateField(selectedFieldId, { name: e.target.value })}
-                      onBlur={() => addToHistory(fields)}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">X (mm)</label>
-                      <input
-                        type="number"
-                        value={Math.round(field.x * 10) / 10}
-                        onChange={(e) => updateFieldWithHistory(selectedFieldId, { x: Number(e.target.value) })}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Y (mm)</label>
-                      <input
-                        type="number"
-                        value={Math.round(field.y * 10) / 10}
-                        onChange={(e) => updateFieldWithHistory(selectedFieldId, { y: Number(e.target.value) })}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                        step="0.1"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Width (mm)</label>
-                      <input
-                        type="number"
-                        value={Math.round((field.width || 50) * 10) / 10}
-                        onChange={(e) => updateFieldWithHistory(selectedFieldId, { width: Number(e.target.value) })}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Height (mm)</label>
-                      <input
-                        type="number"
-                        value={Math.round((field.height || 25) * 10) / 10}
-                        onChange={(e) => updateFieldWithHistory(selectedFieldId, { height: Number(e.target.value) })}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                        step="0.1"
-                      />
-                    </div>
-                  </div>
-
-                  {field.type === 'text' && (
-                    <>
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Font Size</label>
-                        <input
-                          type="number"
-                          value={field.fontSize}
-                          onChange={(e) => updateFieldWithHistory(selectedFieldId, { fontSize: Number(e.target.value) })}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Color</label>
-                        <input
-                          type="color"
-                          value={field.color}
-                          onChange={(e) => updateFieldWithHistory(selectedFieldId, { color: e.target.value })}
-                          className="w-full h-8 border rounded"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Alignment</label>
-                        <select
-                          value={field.align}
-                          onChange={(e) => updateFieldWithHistory(selectedFieldId, { align: e.target.value as any })}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        >
-                          <option value="left">Left</option>
-                          <option value="center">Center</option>
-                          <option value="right">Right</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
-
-                  {(field.type === 'signature' || field.type === 'image') && (
-                    <div>
-                      <label className="block text-xs font-medium mb-1">Upload Image</label>
-                      {field.signatureImageUrl ? (
-                        <div className="space-y-2">
-                          <img 
-                            src={field.signatureImageUrl} 
-                            alt="Preview" 
-                            className="w-full h-20 object-contain border rounded"
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => signatureInputRef.current?.click()}
-                              className="flex-1 px-3 py-1 bg-blue-50 text-blue-700 rounded text-sm hover:bg-blue-100"
-                            >
-                              Change
-                            </button>
-                            <button
-                              onClick={() => updateFieldWithHistory(selectedFieldId, { signatureImageUrl: '' })}
-                              className="flex-1 px-3 py-1 bg-red-50 text-red-700 rounded text-sm hover:bg-red-100"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => signatureInputRef.current?.click()}
-                          className="w-full px-3 py-2 bg-purple-50 text-purple-700 rounded hover:bg-purple-100 flex items-center justify-center gap-2"
-                        >
-                          <Upload size={16} />
-                          Upload Image
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Placeholder</label>
-                    <input
-                      type="text"
-                      value={field.placeholder}
-                      onChange={(e) => updateField(selectedFieldId, { placeholder: e.target.value })}
-                      onBlur={() => addToHistory(fields)}
-                      className="w-full px-2 py-1 border rounded text-sm"
-                    />
-                  </div>
-                </div>
-              );
-            })()}
-
-            <div className="border-t pt-4 flex gap-2">
-              <button
-                onClick={handleSaveTemplate}
-                disabled={loading || !templateName || !backgroundImage}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <Save size={16} />
-                {loading ? 'Saving...' : isEditing ? 'Update' : 'Save'}
-              </button>
-              {isEditing && (
-                <button
-                  onClick={resetForm}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <PropertiesPanel
+          templateName={templateName}
+          templateDescription={templateDescription}
+          templateWidth={templateWidth}
+          templateHeight={templateHeight}
+          fields={fields}
+          selectedFieldId={selectedFieldId}
+          loading={loading}
+          isEditing={isEditing}
+          signatureInputRef={signatureInputRef}
+          onTemplateNameChange={setTemplateName}
+          onTemplateDescriptionChange={setTemplateDescription}
+          onTemplateWidthChange={setTemplateWidth}
+          onTemplateHeightChange={setTemplateHeight}
+          onAddField={addField}
+          onFieldUpdate={updateField}
+          onFieldUpdateWithHistory={updateFieldWithHistory}
+          onFieldDelete={deleteField}
+          onHistoryAdd={addToHistory}
+          onSignatureUploadClick={() => signatureInputRef.current?.click()}
+          onSave={handleSaveTemplate}
+          onCancel={resetForm}
+        />
       </div>
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
