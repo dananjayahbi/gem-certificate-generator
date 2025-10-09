@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import puppeteer from 'puppeteer';
 
@@ -187,13 +187,28 @@ async function buildCertificateHTML(
           font-weight: ${field.fontWeight || 'normal'};
           text-align: ${field.align || 'left'};
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: ${field.align === 'center' ? 'center' : field.align === 'right' ? 'flex-end' : 'flex-start'};
         ">
           ${value}
         </div>
       `;
     } else if ((field.type === 'signature' || field.type === 'image') && field.signatureImageUrl) {
+      // Convert signature image to data URI
+      let signatureImageData = field.signatureImageUrl;
+      if (!signatureImageData.startsWith('data:image')) {
+        try {
+          const imagePath = join(process.cwd(), 'src', 'assets', field.signatureImageUrl.replace('/api/assets/', ''));
+          const imageBuffer = readFileSync(imagePath);
+          const base64 = imageBuffer.toString('base64');
+          const mimeType = field.signatureImageUrl.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
+          signatureImageData = `data:image/${mimeType};base64,${base64}`;
+        } catch (err) {
+          console.error('Failed to load signature image:', field.signatureImageUrl, err);
+          return ''; // Skip this field if image can't be loaded
+        }
+      }
+      
       return `
         <div style="
           position: absolute;
@@ -202,7 +217,7 @@ async function buildCertificateHTML(
           width: ${field.width || 50}mm;
           height: ${field.height || 25}mm;
         ">
-          <img src="${field.signatureImageUrl}" style="width: 100%; height: 100%; object-fit: contain;" />
+          <img src="${signatureImageData}" style="width: 100%; height: 100%; object-fit: contain;" />
         </div>
       `;
     }
