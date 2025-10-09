@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Eye, Edit, Trash2, Printer, Download, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import EditCertificateModal from './components/EditCertificateModal';
 import Link from 'next/link';
 
 interface Certificate {
@@ -26,6 +27,10 @@ export default function Page() {
     name: '',
   });
   const [downloadModal, setDownloadModal] = useState<{ isOpen: boolean; certificate: Certificate | null }>({
+    isOpen: false,
+    certificate: null,
+  });
+  const [editModal, setEditModal] = useState<{ isOpen: boolean; certificate: Certificate | null }>({
     isOpen: false,
     certificate: null,
   });
@@ -214,6 +219,17 @@ export default function Page() {
         message={`Are you sure you want to delete certificate for "${deleteModal.name}"?`}
       />
 
+      {/* Edit Certificate Modal */}
+      {editModal.certificate && (
+        <EditCertificateModal
+          certificate={editModal.certificate}
+          isOpen={editModal.isOpen}
+          onClose={() => setEditModal({ isOpen: false, certificate: null })}
+          onSave={loadCertificates}
+          onToast={toast}
+        />
+      )}
+
       {/* Download Format Modal */}
       {downloadModal.isOpen && (
         <div
@@ -333,7 +349,7 @@ export default function Page() {
                         <Eye size={18} />
                       </button>
                       <button
-                        onClick={() => toast({ title: 'Edit feature', description: 'Coming soon', variant: 'info' })}
+                        onClick={() => setEditModal({ isOpen: true, certificate: cert })}
                         className="text-green-600 hover:text-green-900"
                         title="Edit"
                       >
