@@ -65,9 +65,9 @@ export default function HorizontalPropertiesPanel({
 
   return (
     <div className="p-4 space-y-3">
-      {/* Row 1: Template Properties */}
-      <div className="grid grid-cols-6 gap-3">
-        <div className="col-span-2">
+      {/* Row 1: Template Properties - Flex Grid */}
+      <div className="flex flex-wrap gap-3">
+        <div className="flex-1 min-w-[200px]">
           <label className="block text-xs font-medium mb-1">Template Name</label>
           <input
             type="text"
@@ -77,7 +77,7 @@ export default function HorizontalPropertiesPanel({
             placeholder="e.g., GIA Certificate"
           />
         </div>
-        <div className="col-span-2">
+        <div className="flex-1 min-w-[200px]">
           <label className="block text-xs font-medium mb-1">Description</label>
           <input
             type="text"
@@ -87,7 +87,7 @@ export default function HorizontalPropertiesPanel({
             placeholder="Template description..."
           />
         </div>
-        <div>
+        <div className="min-w-[100px]">
           <label className="block text-xs font-medium mb-1">Width (mm)</label>
           <input
             type="number"
@@ -96,7 +96,7 @@ export default function HorizontalPropertiesPanel({
             className="w-full px-2 py-1.5 border rounded text-sm"
           />
         </div>
-        <div>
+        <div className="min-w-[100px]">
           <label className="block text-xs font-medium mb-1">Height (mm)</label>
           <input
             type="number"
@@ -107,12 +107,12 @@ export default function HorizontalPropertiesPanel({
         </div>
       </div>
 
-      {/* Row 2: Field Controls */}
-      <div className="flex items-end gap-3 border-t pt-3">
+      {/* Row 2: Field Controls - Flex Grid */}
+      <div className="flex flex-wrap items-end gap-3 border-t pt-3">
         {/* Add Field Buttons */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-[400px]">
           <label className="block text-xs font-medium mb-1.5">Add Field</label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button 
               onClick={() => onAddField('text')} 
               className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-1.5 text-sm"
@@ -145,18 +145,18 @@ export default function HorizontalPropertiesPanel({
         </div>
 
         {/* Save/Cancel Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={onSave}
             disabled={loading || !templateName.trim()}
-            className="px-4 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+            className="px-4 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm whitespace-nowrap"
           >
             <Save size={14} />
             {loading ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
           </button>
           <button
             onClick={onCancel}
-            className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center gap-2 text-sm"
+            className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center gap-2 text-sm whitespace-nowrap"
           >
             <X size={14} />
             Cancel
@@ -164,10 +164,10 @@ export default function HorizontalPropertiesPanel({
         </div>
       </div>
 
-      {/* Row 3: Selected Field Properties (Conditional) */}
+      {/* Row 3: Selected Field Properties - Flex Grid (Conditional) */}
       {selectedField && (
-        <div className="grid grid-cols-12 gap-2 border-t pt-3">
-          <div className="col-span-2">
+        <div className="flex flex-wrap gap-2 border-t pt-3">
+          <div className="min-w-[140px] flex-1">
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-medium">Field Name</label>
               <button
@@ -187,7 +187,7 @@ export default function HorizontalPropertiesPanel({
             />
           </div>
           
-          <div>
+          <div className="min-w-[70px]">
             <label className="block text-xs font-medium mb-1">X (mm)</label>
             <input
               type="number"
@@ -198,7 +198,7 @@ export default function HorizontalPropertiesPanel({
             />
           </div>
           
-          <div>
+          <div className="min-w-[70px]">
             <label className="block text-xs font-medium mb-1">Y (mm)</label>
             <input
               type="number"
@@ -209,7 +209,7 @@ export default function HorizontalPropertiesPanel({
             />
           </div>
           
-          <div>
+          <div className="min-w-[70px]">
             <label className="block text-xs font-medium mb-1">W (mm)</label>
             <input
               type="number"
@@ -220,7 +220,7 @@ export default function HorizontalPropertiesPanel({
             />
           </div>
           
-          <div>
+          <div className="min-w-[70px]">
             <label className="block text-xs font-medium mb-1">H (mm)</label>
             <input
               type="number"
@@ -233,7 +233,7 @@ export default function HorizontalPropertiesPanel({
 
           {selectedField.type !== 'signature' && selectedField.type !== 'image' && (
             <>
-              <div className="col-span-2">
+              <div className="min-w-[140px]">
                 <FontSelector
                   value={selectedField.fontFamily || 'TimesRoman'}
                   fonts={fonts}
@@ -245,7 +245,7 @@ export default function HorizontalPropertiesPanel({
                 />
               </div>
               
-              <div>
+              <div className="min-w-[80px]">
                 <label className="block text-xs font-medium mb-1">Font Size</label>
                 <input
                   type="number"
@@ -255,7 +255,7 @@ export default function HorizontalPropertiesPanel({
                 />
               </div>
               
-              <div>
+              <div className="min-w-[80px]">
                 <label className="block text-xs font-medium mb-1">Weight</label>
                 <select
                   value={selectedField.fontWeight || 'normal'}
@@ -267,7 +267,7 @@ export default function HorizontalPropertiesPanel({
                 </select>
               </div>
               
-              <div>
+              <div className="min-w-[70px]">
                 <label className="block text-xs font-medium mb-1">Color</label>
                 <input
                   type="color"
@@ -277,7 +277,7 @@ export default function HorizontalPropertiesPanel({
                 />
               </div>
               
-              <div>
+              <div className="min-w-[80px]">
                 <label className="block text-xs font-medium mb-1">Align</label>
                 <select
                   value={selectedField.align || 'left'}
@@ -293,7 +293,7 @@ export default function HorizontalPropertiesPanel({
           )}
 
           {(selectedField.type === 'signature' || selectedField.type === 'image') && (
-            <div className="col-span-2">
+            <div className="min-w-[140px]">
               <label className="block text-xs font-medium mb-1">Upload Image</label>
               <button
                 onClick={onSignatureUploadClick}
