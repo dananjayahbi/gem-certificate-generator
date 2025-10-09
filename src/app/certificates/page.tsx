@@ -12,6 +12,7 @@ interface Certificate {
   certificateNumber: string | null;
   recipientName: string;
   issuedTo: string | null;
+  backgroundVisible: boolean;
   createdAt: string;
   templateId: string;
   fieldValues: string;
@@ -209,6 +210,31 @@ export default function Page() {
     }
   };
 
+  const handleToggleBackground = async (cert: Certificate) => {
+    try {
+      const newValue = !cert.backgroundVisible;
+      const response = await fetch(`/api/certificates/${cert.id}/background-visibility`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': 'admin',
+        },
+        body: JSON.stringify({ backgroundVisible: newValue }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to update background visibility');
+      
+      toast({ 
+        title: 'Success', 
+        description: `Background ${newValue ? 'enabled' : 'disabled'}`, 
+        variant: 'success' 
+      });
+      loadCertificates();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update background visibility', variant: 'error' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ConfirmationModal
@@ -307,6 +333,9 @@ export default function Page() {
                 Date
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                Background Visibility
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                 Actions
               </th>
             </tr>
@@ -314,13 +343,13 @@ export default function Page() {
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                   Loading...
                 </td>
               </tr>
             ) : certificates.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                   No certificates found
                 </td>
               </tr>
@@ -338,6 +367,21 @@ export default function Page() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(cert.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <button
+                      onClick={() => handleToggleBackground(cert)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        cert.backgroundVisible ? 'bg-green-600' : 'bg-gray-300'
+                      }`}
+                      title={cert.backgroundVisible ? 'Background enabled' : 'Background disabled'}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          cert.backgroundVisible ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex justify-center gap-2">

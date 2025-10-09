@@ -36,6 +36,7 @@ model Certificate {
   recipientName     String
   issuedTo          String?   // Person/organization the certificate is issued to
   fieldValues       String   // JSON string containing field data
+  backgroundVisible Boolean  @default(true)  // Toggle for showing/hiding background in output
   pdfUrl            String?
   createdBy         String?
   createdAt         DateTime @default(now())

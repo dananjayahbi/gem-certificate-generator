@@ -51,9 +51,10 @@ export async function GET(
     };
 
     console.log('Template:', template.name);
+    console.log('Background visible:', certificate.backgroundVisible);
 
     // Build HTML for certificate
-    const html = await buildCertificateHTML(template, fieldValues);
+    const html = await buildCertificateHTML(template, fieldValues, certificate.backgroundVisible);
 
     // Launch Puppeteer
     browser = await puppeteer.launch({
@@ -118,12 +119,13 @@ export async function GET(
  */
 async function buildCertificateHTML(
   template: any,
-  fieldValues: Record<string, string>
+  fieldValues: Record<string, string>,
+  backgroundVisible: boolean = true
 ): Promise<string> {
   // Convert background image to data URI
   let backgroundImageData = template.backgroundImageUrl;
   
-  if (!backgroundImageData.startsWith('data:image')) {
+  if (backgroundVisible && !backgroundImageData.startsWith('data:image')) {
     const imagePath = join(process.cwd(), 'src', 'assets', template.backgroundImageUrl.replace('/api/assets/', ''));
     const imageBuffer = await readFile(imagePath);
     const base64 = imageBuffer.toString('base64');
@@ -250,7 +252,7 @@ async function buildCertificateHTML(
           position: relative;
           width: ${template.width}mm;
           height: ${template.height}mm;
-          background-image: url('${backgroundImageData}');
+          ${backgroundVisible ? `background-image: url('${backgroundImageData}');` : 'background-color: white;'}
           background-size: cover;
           background-position: center;
         }
