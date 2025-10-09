@@ -19,7 +19,6 @@ import PropertiesPanel from './components/PropertiesPanel';
 import FullPageLayout from './components/FullPageLayout';
 import Preview from './components/Preview';
 import HorizontalPropertiesPanel from './components/HorizontalPropertiesPanel';
-import FontSelector from './components/FontSelector';
 import { mmToPx, pxToMm } from './utils/conversions';
 
 export default function CertificateDesignerPage() {
