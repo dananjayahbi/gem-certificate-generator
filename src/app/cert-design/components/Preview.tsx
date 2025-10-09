@@ -93,7 +93,7 @@ export default function Preview({
                       fontFamily: getFontFamilyWithFallback(field.fontFamily || 'TimesRoman'),
                       textAlign: field.align as any,
                       display: 'flex',
-                      alignItems: 'center',
+                      alignItems: 'flex-start',
                       justifyContent: field.align === 'center' ? 'center' : field.align === 'right' ? 'flex-end' : 'flex-start',
                     }}
                   >

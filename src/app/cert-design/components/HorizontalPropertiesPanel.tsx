@@ -267,14 +267,34 @@ export default function HorizontalPropertiesPanel({
                 </select>
               </div>
               
-              <div className="min-w-[70px]">
+              <div className="min-w-[120px]">
                 <label className="block text-xs font-medium mb-1">Color</label>
-                <input
-                  type="color"
-                  value={selectedField.color || '#000000'}
-                  onChange={(e) => onFieldUpdateWithHistory(selectedFieldId!, { color: e.target.value })}
-                  className="w-full h-7 border rounded cursor-pointer"
-                />
+                <div className="flex gap-1">
+                  <input
+                    type="color"
+                    value={selectedField.color || '#000000'}
+                    onChange={(e) => onFieldUpdateWithHistory(selectedFieldId!, { color: e.target.value })}
+                    className="w-8 h-7 border rounded cursor-pointer"
+                    title="Pick color"
+                  />
+                  <input
+                    type="text"
+                    value={selectedField.color || '#000000'}
+                    onChange={(e) => {
+                      const hexValue = e.target.value;
+                      // Validate hex color
+                      if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
+                        onFieldUpdateWithHistory(selectedFieldId!, { color: hexValue });
+                      } else if (hexValue.length <= 7) {
+                        // Allow typing but don't update until valid
+                        onFieldUpdateWithHistory(selectedFieldId!, { color: hexValue });
+                      }
+                    }}
+                    className="flex-1 px-2 py-1 border rounded text-xs font-mono"
+                    placeholder="#000000"
+                    maxLength={7}
+                  />
+                </div>
               </div>
               
               <div className="min-w-[80px]">

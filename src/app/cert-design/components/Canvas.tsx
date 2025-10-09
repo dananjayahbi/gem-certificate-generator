@@ -20,6 +20,7 @@ interface CanvasProps {
   onScaleChange: (scale: number) => void;
   onUploadClick: () => void;
   onFieldClick: (fieldId: string) => void;
+  onCanvasMouseDown: (e: React.MouseEvent) => void;
   onFieldMouseDown: (e: React.MouseEvent, fieldId: string) => void;
   onResizeMouseDown: (e: React.MouseEvent, fieldId: string, corner: string) => void;
   onCanvasMouseMove: (e: React.MouseEvent) => void;
@@ -46,6 +47,7 @@ export default function Canvas({
   onScaleChange,
   onUploadClick,
   onFieldClick,
+  onCanvasMouseDown,
   onFieldMouseDown,
   onResizeMouseDown,
   onCanvasMouseMove,
@@ -133,6 +135,7 @@ export default function Canvas({
                 backgroundImage: `url(${backgroundImage})`,
                 backgroundSize: 'cover',
               }}
+              onMouseDown={onCanvasMouseDown}
               onMouseMove={onCanvasMouseMove}
               onMouseUp={onCanvasMouseUp}
               onMouseLeave={onCanvasMouseUp}
@@ -142,7 +145,10 @@ export default function Canvas({
                 return (
                   <div
                     key={field.id}
-                    onClick={() => onFieldClick(field.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFieldClick(field.id);
+                    }}
                     onMouseDown={(e) => onFieldMouseDown(e, field.id)}
                     className={`absolute group ${
                       isSelected ? 'ring-2 ring-amber-500 z-10' : 'border border-blue-300'
@@ -169,12 +175,13 @@ export default function Canvas({
                       />
                     ) : (
                       <div 
-                        className="text-xs p-1 pointer-events-none flex items-center justify-center h-full"
+                        className="text-xs p-1 pointer-events-none flex items-start justify-start h-full"
                         style={{
                           fontSize: `${field.fontSize * scale}px`,
                           color: field.color,
                           fontWeight: field.fontWeight,
                           fontFamily: getFontFamilyWithFallback(field.fontFamily || 'TimesRoman'),
+                          textAlign: field.align || 'left',
                         }}
                       >
                         {field.placeholder || field.name}

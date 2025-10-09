@@ -80,6 +80,61 @@ export default function CertificateDesignerPage() {
       const target = e.target as HTMLElement;
       const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
       
+      // Ctrl+C to copy field
+      if (e.ctrlKey && e.key === 'c' && selectedFieldId && !isInputFocused) {
+        e.preventDefault();
+        const field = fields.find(f => f.id === selectedFieldId);
+        if (field) {
+          const fieldCopy = JSON.stringify(field);
+          navigator.clipboard.writeText(fieldCopy);
+          toast({ title: 'Field copied', description: 'Press Ctrl+V to paste', variant: 'info', duration: 2000 });
+        }
+      }
+      
+      // Ctrl+V to paste field
+      if (e.ctrlKey && e.key === 'v' && !isInputFocused) {
+        e.preventDefault();
+        navigator.clipboard.readText().then(text => {
+          try {
+            const copiedField = JSON.parse(text);
+            if (copiedField.id && copiedField.type) {
+              const newField = {
+                ...copiedField,
+                id: generateFieldId(),
+                x: copiedField.x + 10, // Offset by 10mm
+                y: copiedField.y + 10,
+              };
+              const newFields = [...fields, newField];
+              setFields(newFields);
+              addToHistory(newFields);
+              setSelectedFieldId(newField.id);
+              toast({ title: 'Field pasted', description: 'Field duplicated successfully', variant: 'success', duration: 2000 });
+            }
+          } catch (error) {
+            // Not a valid field JSON, ignore
+          }
+        });
+      }
+      
+      // Ctrl+D to duplicate field
+      if (e.ctrlKey && e.key === 'd' && selectedFieldId && !isInputFocused) {
+        e.preventDefault();
+        const field = fields.find(f => f.id === selectedFieldId);
+        if (field) {
+          const newField = {
+            ...field,
+            id: generateFieldId(),
+            x: field.x + 10, // Offset by 10mm
+            y: field.y + 10,
+          };
+          const newFields = [...fields, newField];
+          setFields(newFields);
+          addToHistory(newFields);
+          setSelectedFieldId(newField.id);
+          toast({ title: 'Field duplicated', description: 'Field copied successfully', variant: 'success', duration: 2000 });
+        }
+      }
+      
       // Delete/Backspace to delete field
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFieldId && !isInputFocused) {
         e.preventDefault();
@@ -332,6 +387,14 @@ export default function CertificateDesignerPage() {
     });
   };
 
+  // Handle canvas mousedown - deselect if clicking on canvas background
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    // If not clicking on a field (clicking on canvas background), deselect
+    if (e.target === canvasRef.current) {
+      setSelectedFieldId(null);
+    }
+  };
+
   const handleResizeMouseDown = (e: React.MouseEvent, fieldId: string, corner: string) => {
     e.stopPropagation();
     setIsResizing(true);
@@ -408,6 +471,11 @@ export default function CertificateDesignerPage() {
     }
     setIsDragging(false);
     setIsResizing(false);
+  };
+
+  // Handle field click - just select the field (no toggle)
+  const handleFieldClick = (fieldId: string) => {
+    setSelectedFieldId(fieldId);
   };
 
   const handleSaveTemplate = async () => {
@@ -592,7 +660,8 @@ export default function CertificateDesignerPage() {
               fileInputRef={fileInputRef}
               onScaleChange={setScale}
               onUploadClick={() => fileInputRef.current?.click()}
-              onFieldClick={setSelectedFieldId}
+              onFieldClick={handleFieldClick}
+              onCanvasMouseDown={handleCanvasMouseDown}
               onFieldMouseDown={handleFieldMouseDown}
               onResizeMouseDown={handleResizeMouseDown}
               onCanvasMouseMove={handleMouseMove}
@@ -663,7 +732,8 @@ export default function CertificateDesignerPage() {
           fileInputRef={fileInputRef}
           onScaleChange={setScale}
           onUploadClick={() => fileInputRef.current?.click()}
-          onFieldClick={setSelectedFieldId}
+          onFieldClick={handleFieldClick}
+          onCanvasMouseDown={handleCanvasMouseDown}
           onFieldMouseDown={handleFieldMouseDown}
           onResizeMouseDown={handleResizeMouseDown}
           onCanvasMouseMove={handleMouseMove}
