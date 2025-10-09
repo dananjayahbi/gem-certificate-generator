@@ -622,7 +622,7 @@ export default function CertificateDesignerPage() {
 
   // Render normal mode
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, templateId: '', templateName: '' })}

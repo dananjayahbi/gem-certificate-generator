@@ -166,7 +166,6 @@ export default function Page() {
     <div className="min-h-screen bg-gray-50">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Issue Certificate</h1>
-        <p className="text-gray-600 mt-2">Create and issue a new certificate</p>
       </div>
 
       <div className="max-w-4xl mx-auto">

@@ -9,26 +9,26 @@ interface FullPageLayoutProps {
 
 export default function FullPageLayout({ header, canvas, preview, properties }: FullPageLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       {/* Header with Template Selector */}
-      <div className="bg-white border-b border-gray-200 shadow-sm p-4">
+      <div className="bg-transparent border-gray-200">
         {header}
       </div>
       
       {/* Horizontal Properties Panel */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-white py-4 shadow-sm rounded-lg border-gray-200 ">
         {properties}
       </div>
       
       {/* Split View: Canvas (Left) | Preview (Right) */}
-      <div className="grid grid-cols-2 gap-0">
+      <div className="grid grid-cols-2 gap-1">
         {/* Canvas Section */}
-        <div className="border-r border-gray-300 bg-gray-100 flex justify-center py-8">
+        <div className="bg-transparent flex justify-center items-stretch py-6">
           {canvas}
         </div>
         
         {/* Preview Section */}
-        <div className="bg-gray-50 flex justify-center py-8">
+        <div className="bg-transparent flex justify-center items-stretch py-6">
           {preview}
         </div>
       </div>

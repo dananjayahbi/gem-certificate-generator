@@ -33,7 +33,6 @@ export default function TemplateSelector({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Certificate Template Designer</h1>
-          <p className="text-gray-600 mt-2">Create and customize certificate templates</p>
         </div>
         <div className="flex gap-2">
           {onToggleFullPage && (

@@ -79,7 +79,7 @@ export default function Canvas({
         
         {/* Canvas Controls Help */}
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs text-blue-800">
+          <p className="text-xs text-blue-800 leading-6">
             <strong>💡 Canvas Controls:</strong> 
             <span className="ml-2">
               <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Ctrl</kbd> + 

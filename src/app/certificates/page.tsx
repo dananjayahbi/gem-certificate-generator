@@ -252,7 +252,6 @@ export default function Page() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">All Certificates</h1>
-          <p className="text-gray-600 mt-2">View and manage issued certificates</p>
         </div>
         <Link
           href="/certificates/create"

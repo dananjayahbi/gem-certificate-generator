@@ -1,6 +1,7 @@
 import type { TemplateField } from '@/services/certificateTemplateService';
 import { mmToPx } from '../utils/conversions';
 import { getFontFamilyWithFallback } from '../utils/fontUtils';
+import { Eye } from 'lucide-react';
 
 interface PreviewProps {
   backgroundImage: string;
@@ -30,9 +31,11 @@ export default function Preview({
         </div>
         
         {/* Spacer to match Canvas help box height */}
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="mb-4 p-7 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-xs text-green-800">
-            <strong>👁️ Live Preview:</strong> 
+            <strong>
+              <Eye className="w-4 h-4 inline align-middle mr-2" /> Live Preview:
+            </strong>
             <span className="ml-2">
               This shows how your certificate will look with field names as sample values
             </span>
