@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
+import fontkit from '@pdf-lib/fontkit';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { existsSync } from 'fs';
 
 /**
  * GET /api/certificates/[id]/generate?format=pdf
@@ -49,10 +50,20 @@ export async function GET(
       fields: JSON.parse(templateData.fields),
     };
 
+    console.log('=== PDF GENERATION DEBUG ===');
+    console.log('Certificate ID:', certificate.id);
+    console.log('Field Values:', fieldValues);
+    console.log('Template Fields:', template.fields.map((f: any) => ({ id: f.id, name: f.name, type: f.type })));
+    console.log('===========================');
+    
     console.log('Template loaded:', { id: template.id, name: template.name });
 
     // Generate PDF
     const pdfDoc = await PDFDocument.create();
+    
+    // Register fontkit to enable custom font embedding
+    pdfDoc.registerFontkit(fontkit);
+    
     const mmToPoints = (mm: number) => mm * 2.834645669;
 
     const page = pdfDoc.addPage([
@@ -97,36 +108,67 @@ export async function GET(
 
     console.log('Background image drawn');
 
-    // Embed fonts
+    // Embed fonts - standard fonts
     const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-    const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const courierFont = await pdfDoc.embedFont(StandardFonts.Courier);
 
-    const fontMap = {
-      'Times New Roman': timesRomanFont,
-      'Times-Roman': timesRomanFont,
-      'Times-Bold': timesRomanBoldFont,
-      Helvetica: helveticaFont,
-      'Helvetica-Bold': helveticaBoldFont,
+    // Map of standard fonts
+    const fontMap: Record<string, any> = {
+      'TimesRoman': timesRomanFont,
+      'Helvetica': helveticaFont,
+      'Courier': courierFont,
     };
+
+    // Load custom fonts from user-fonts directory
+    const customFontsDir = join(process.cwd(), 'src', 'assets', 'fonts', 'user-fonts');
+    for (const field of template.fields) {
+      if ((field.type === 'text' || field.type === 'date') && field.fontFamily) {
+        // Check if it's a custom font (not in standard fonts)
+        if (!fontMap[field.fontFamily]) {
+          const fontPath = join(customFontsDir, `${field.fontFamily}.ttf`);
+          if (existsSync(fontPath)) {
+            try {
+              const fontBytes = await readFile(fontPath);
+              const customFont = await pdfDoc.embedFont(fontBytes);
+              fontMap[field.fontFamily] = customFont;
+              console.log(`Loaded custom font: ${field.fontFamily}`);
+            } catch (fontError) {
+              console.error(`Error loading custom font ${field.fontFamily}:`, fontError);
+              // Fallback to Helvetica if custom font fails
+              fontMap[field.fontFamily] = helveticaFont;
+            }
+          } else {
+            console.warn(`Custom font file not found: ${fontPath}, using Helvetica`);
+            fontMap[field.fontFamily] = helveticaFont;
+          }
+        }
+      }
+    }
 
     // Draw fields
     for (const field of template.fields) {
       if (field.type === 'text' || field.type === 'date') {
         const value = fieldValues[field.id] || field.defaultValue || '';
         const font = fontMap[field.fontFamily as keyof typeof fontMap] || helveticaFont;
-        const fontSize = field.fontSize || 14;
+        const fontSize = field.fontSize || 14; // fontSize is already in points
+        
+        // Convert field position from mm to points
         const xPos = mmToPoints(field.x);
-        const yPos = page.getHeight() - mmToPoints(field.y) - fontSize;
+        // PDF uses bottom-left origin, so convert from top-left: 
+        // pageHeight - (field.y in points) - (field.height in points)
+        const fieldHeightPoints = mmToPoints(field.height || (field.fontSize * 0.3527777778 / 2.834645669)); 
+        const yPos = page.getHeight() - mmToPoints(field.y) - fieldHeightPoints;
 
         const textWidth = font.widthOfTextAtSize(value, fontSize);
         let finalX = xPos;
 
         if (field.textAlign === 'center') {
-          finalX = xPos - textWidth / 2;
+          const fieldWidthPoints = mmToPoints(field.width || 50);
+          finalX = xPos + (fieldWidthPoints / 2) - (textWidth / 2);
         } else if (field.textAlign === 'right') {
-          finalX = xPos - textWidth;
+          const fieldWidthPoints = mmToPoints(field.width || 50);
+          finalX = xPos + fieldWidthPoints - textWidth;
         }
 
         page.drawText(value, {
