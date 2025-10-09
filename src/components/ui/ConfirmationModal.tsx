@@ -42,9 +42,20 @@ export default function ConfirmationModal({
 
   const isConfirmValid = !requireTyping || inputValue.toLowerCase() === confirmText.toLowerCase();
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Close only when clicking the backdrop itself, not inner content
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+    >
+      {/* Ensure inner content is clipped to fully rounded corners */}
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           <button
@@ -78,14 +89,14 @@ export default function ConfirmationModal({
         <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
           <button
             onClick={handleClose}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
+            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
             disabled={!isConfirmValid}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
           >
             Delete
           </button>
