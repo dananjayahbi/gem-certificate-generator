@@ -17,6 +17,8 @@ interface CanvasProps {
   canvasContainerRef: RefObject<HTMLDivElement>;
   canvasRef: RefObject<HTMLDivElement>;
   fileInputRef: RefObject<HTMLInputElement>;
+  normalMoveAmount?: number;
+  shiftMoveAmount?: number;
   onScaleChange: (scale: number) => void;
   onUploadClick: () => void;
   onFieldClick: (fieldId: string) => void;
@@ -44,6 +46,8 @@ export default function Canvas({
   canvasContainerRef,
   canvasRef,
   fileInputRef,
+  normalMoveAmount = 0.5,
+  shiftMoveAmount = 1.0,
   onScaleChange,
   onUploadClick,
   onFieldClick,
@@ -94,12 +98,12 @@ export default function Canvas({
             </span>
             <span className="mx-2">•</span>
             <span>
-              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Arrow Keys</kbd> to move field (0.5mm)
+              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Arrow Keys</kbd> to move field ({normalMoveAmount}mm)
             </span>
             <span className="mx-2">•</span>
             <span>
               <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs">Shift</kbd> + 
-              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Arrow</kbd> for 1mm steps
+              <kbd className="px-2 py-0.5 bg-white border border-blue-300 rounded text-xs ml-1">Arrow</kbd> for {shiftMoveAmount}mm steps
             </span>
           </p>
         </div>

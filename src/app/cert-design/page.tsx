@@ -29,6 +29,10 @@ export default function CertificateDesignerPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   
+  // Settings state
+  const [normalMoveAmount, setNormalMoveAmount] = useState(0.5);
+  const [shiftMoveAmount, setShiftMoveAmount] = useState(1.0);
+  
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [backgroundImage, setBackgroundImage] = useState('');
@@ -73,7 +77,22 @@ export default function CertificateDesignerPage() {
 
   useEffect(() => {
     loadTemplates();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setNormalMoveAmount(data.settings.normalMoveAmount);
+        setShiftMoveAmount(data.settings.shiftMoveAmount);
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      // Use default values if settings cannot be loaded
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -146,7 +165,7 @@ export default function CertificateDesignerPage() {
         e.preventDefault();
         const field = fields.find(f => f.id === selectedFieldId);
         if (field) {
-          const moveAmount = e.shiftKey ? 1 : 0.5; // Hold Shift for 1mm, normal for 0.5mm
+          const moveAmount = e.shiftKey ? shiftMoveAmount : normalMoveAmount; // Use settings values
           let newX = field.x;
           let newY = field.y;
           
@@ -171,7 +190,7 @@ export default function CertificateDesignerPage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedFieldId, fields]);
+  }, [selectedFieldId, fields, normalMoveAmount, shiftMoveAmount]);
 
   // Zoom with Ctrl+Wheel
   useEffect(() => {
@@ -658,6 +677,8 @@ export default function CertificateDesignerPage() {
               canvasContainerRef={canvasContainerRef}
               canvasRef={canvasRef}
               fileInputRef={fileInputRef}
+              normalMoveAmount={normalMoveAmount}
+              shiftMoveAmount={shiftMoveAmount}
               onScaleChange={setScale}
               onUploadClick={() => fileInputRef.current?.click()}
               onFieldClick={handleFieldClick}
@@ -730,6 +751,8 @@ export default function CertificateDesignerPage() {
           canvasContainerRef={canvasContainerRef}
           canvasRef={canvasRef}
           fileInputRef={fileInputRef}
+          normalMoveAmount={normalMoveAmount}
+          shiftMoveAmount={shiftMoveAmount}
           onScaleChange={setScale}
           onUploadClick={() => fileInputRef.current?.click()}
           onFieldClick={handleFieldClick}

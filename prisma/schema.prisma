@@ -59,3 +59,12 @@ model CertificateTemplate {
 
   @@map("certificate_templates")
 }
+
+model Settings {
+  id                        String   @id @default(cuid())
+  normalMoveAmount          Float    @default(0.5)  // Movement in mm for normal arrow key press
+  shiftMoveAmount           Float    @default(1.0)  // Movement in mm for Shift + arrow key press
+  updatedAt                 DateTime @updatedAt
+
+  @@map("settings")
+}
