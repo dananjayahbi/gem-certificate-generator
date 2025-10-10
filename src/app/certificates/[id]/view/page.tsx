@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/useToast';
+import PageLoader from '@/components/ui/PageLoader';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -44,7 +45,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       {loading ? (
-        <div className="text-gray-700 text-xl font-semibold">Generating certificate preview...</div>
+        <PageLoader text="Generating certificate preview..." />
       ) : imageUrl ? (
         <div className="w-full max-w-5xl bg-white shadow-2xl rounded-lg overflow-hidden p-4">
           <img

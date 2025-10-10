@@ -8,6 +8,7 @@ import EditCertificateModal from './components/EditCertificateModal';
 import Pagination from './components/Pagination';
 import SearchAndFilters from './components/SearchAndFilters';
 import SortableHeader from './components/SortableHeader';
+import TableSkeleton from '@/components/ui/TableSkeleton';
 import Link from 'next/link';
 
 interface Certificate {
@@ -299,7 +300,7 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, id: '', name: '' })}
@@ -427,11 +428,7 @@ export default function Page() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                  Loading...
-                </td>
-              </tr>
+              <TableSkeleton rows={10} columns={6} />
             ) : certificates.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-gray-500">

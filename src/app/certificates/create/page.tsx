@@ -218,7 +218,7 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Issue Certificate</h1>
       </div>

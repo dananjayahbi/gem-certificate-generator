@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Keyboard, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
+import PageLoader from '@/components/ui/PageLoader';
 
 interface Settings {
   id: string;
@@ -99,13 +100,13 @@ export default function Page() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading settings...</div>
+        <PageLoader text="Loading settings..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto py-8 px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>

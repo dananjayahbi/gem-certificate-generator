@@ -4,6 +4,7 @@ import { useState } from "react";
 import { User, Lock, Mail, Shield, Calendar } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { updateProfile, UpdateProfileData } from "@/services/profileService";
+import PageLoader from "@/components/ui/PageLoader";
 
 export default function UserProfilePage() {
   const { profile, loading, refetch } = useProfile();
@@ -104,7 +105,7 @@ export default function UserProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[#8A94AD]">Loading profile...</div>
+        <PageLoader text="Loading profile..." />
       </div>
     );
   }
@@ -118,7 +119,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-10">
+    <div className="min-h-screen bg-gradient-to-br py-10">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center mb-8">

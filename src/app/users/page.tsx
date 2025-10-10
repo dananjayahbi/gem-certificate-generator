@@ -8,6 +8,7 @@ import AddUserModal from "./components/AddUserModal";
 import EditUserModal from "./components/EditUserModal";
 import ViewUserModal from "./components/ViewUserModal";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
+import TableSkeleton from "@/components/ui/TableSkeleton";
 
 export default function UsersPage() {
   const { users, loading, refetch } = useUsers();
@@ -82,8 +83,33 @@ export default function UsersPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-[#8A94AD]">Loading users...</div>
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E9F0] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-[#F5F7FA] border-b border-[#E5E9F0]">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#525B75] uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#525B75] uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#525B75] uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#525B75] uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#525B75] uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5E9F0]">
+                <TableSkeleton rows={10} columns={5} />
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm border border-[#E5E9F0] overflow-hidden">
