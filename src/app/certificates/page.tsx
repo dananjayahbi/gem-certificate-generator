@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Eye, Edit, Trash2, Printer, Download, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import EditCertificateModal from './components/EditCertificateModal';
+import Pagination from './components/Pagination';
+import SearchAndFilters from './components/SearchAndFilters';
+import SortableHeader from './components/SortableHeader';
 import Link from 'next/link';
 
 interface Certificate {
@@ -18,10 +21,38 @@ interface Certificate {
   fieldValues: string;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 export default function Page() {
   const { toast } = useToast();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 10,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+
+  // Filter and search states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [recipientFilter, setRecipientFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Sorting states
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
     isOpen: false,
     id: '',
@@ -36,24 +67,56 @@ export default function Page() {
     certificate: null,
   });
 
-  useEffect(() => {
-    loadCertificates();
-  }, []);
-
-  const loadCertificates = async () => {
+  // Load certificates with all filters
+  const loadCertificates = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/certificates', {
+      
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+        sortBy,
+        sortOrder,
+      });
+
+      if (searchTerm) params.append('search', searchTerm);
+      if (recipientFilter) params.append('recipient', recipientFilter);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await fetch(`/api/certificates?${params.toString()}`, {
         headers: { 'x-user-role': 'admin' },
       });
+      
       if (!response.ok) throw new Error('Failed to load certificates');
+      
       const data = await response.json();
       setCertificates(data.certificates);
+      setPagination(data.pagination);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to load certificates', variant: 'error' });
     } finally {
       setLoading(false);
     }
+  }, [pagination.page, pagination.limit, sortBy, sortOrder, searchTerm, recipientFilter, startDate, endDate, toast]);
+
+  useEffect(() => {
+    loadCertificates();
+  }, [loadCertificates]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+  }, [searchTerm, recipientFilter, startDate, endDate, sortBy, sortOrder]);
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  const handleSort = (newSortBy: string, newSortOrder: 'asc' | 'desc') => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
   };
 
   const handleDelete = async () => {
@@ -316,6 +379,16 @@ export default function Page() {
         </Link>
       </div>
 
+      {/* Search and Filters */}
+      <SearchAndFilters
+        onSearchChange={setSearchTerm}
+        onRecipientFilterChange={setRecipientFilter}
+        onDateRangeChange={(start, end) => {
+          setStartDate(start);
+          setEndDate(end);
+        }}
+      />
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -323,15 +396,27 @@ export default function Page() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Cert ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Recipient
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Issued To
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Date
-              </th>
+              <SortableHeader
+                label="Recipient"
+                sortKey="recipientName"
+                currentSortBy={sortBy}
+                currentSortOrder={sortOrder}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Issued To"
+                sortKey="issuedTo"
+                currentSortBy={sortBy}
+                currentSortOrder={sortOrder}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Date"
+                sortKey="createdAt"
+                currentSortBy={sortBy}
+                currentSortOrder={sortOrder}
+                onSort={handleSort}
+              />
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                 Background Visibility
               </th>
@@ -427,6 +512,16 @@ export default function Page() {
             )}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalCount={pagination.totalCount}
+          hasNextPage={pagination.hasNextPage}
+          hasPreviousPage={pagination.hasPreviousPage}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );
