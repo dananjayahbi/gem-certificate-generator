@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id');
     const body = await request.json();
-    const { templateId, recipientName, issuedTo, fieldValues } = body;
+    const { templateId, recipientName, issuedTo, fieldValues, backgroundVisible } = body;
 
     // Validate required fields
     if (!templateId || !recipientName || !fieldValues) {
@@ -149,6 +149,7 @@ export async function POST(request: NextRequest) {
         recipientName,
         issuedTo: issuedTo || null,
         fieldValues: JSON.stringify(fieldValues),
+        backgroundVisible: backgroundVisible ?? true,
         createdBy: userId || null,
       },
     });

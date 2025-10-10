@@ -14,10 +14,24 @@ export default function Page() {
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [recipientName, setRecipientName] = useState('');
   const [issuedTo, setIssuedTo] = useState('');
+  const [backgroundVisible, setBackgroundVisible] = useState(true);
 
   useEffect(() => {
     loadTemplates();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setBackgroundVisible(data.settings.defaultBackgroundVisible);
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    }
+  };
 
   const loadTemplates = async () => {
     try {
@@ -97,6 +111,7 @@ export default function Page() {
           recipientName: recipientName.trim(),
           issuedTo: issuedTo.trim() || null,
           fieldValues,
+          backgroundVisible,
         }),
       });
 
@@ -114,32 +129,72 @@ export default function Page() {
         variant: 'success' 
       });
 
-      // If shouldPrint is true, generate and download the PDF
+      // If shouldPrint is true, generate PDF and open print dialog
       if (shouldPrint) {
-        const pdfResponse = await fetch(`/api/certificates/${certificateId}/generate?format=pdf`);
+        toast({ title: 'Info', description: 'Preparing to print...', variant: 'info' });
+        
+        const pdfResponse = await fetch(`/api/certificates/${certificateId}/generate?format=pdf&disposition=inline`);
         if (!pdfResponse.ok) {
           throw new Error('Failed to generate PDF');
         }
         
         const blob = await pdfResponse.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `certificate-${data.certificate.certificateNumber || certificateId}.pdf`;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
         
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 100);
+        // Convert blob to base64 data URI
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          const base64data = reader.result as string;
+          
+          // Open a popup window with the PDF
+          const printWindow = window.open('', '_blank', 'width=800,height=600');
+          
+          if (!printWindow) {
+            toast({ 
+              title: 'Popup Blocked', 
+              description: 'Please allow popups to print certificates', 
+              variant: 'error' 
+            });
+            return;
+          }
+          
+          // Write HTML with PDF object
+          printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Print Certificate</title>
+                <style>
+                  body, html {
+                    margin: 0;
+                    padding: 0;
+                    height: 100%;
+                    width: 100%;
+                    overflow: hidden;
+                  }
+                  object {
+                    width: 100%;
+                    height: 100%;
+                  }
+                </style>
+              </head>
+              <body>
+                <object data="${base64data}" type="application/pdf" width="100%" height="100%">
+                  <p>PDF cannot be displayed. Please update your browser.</p>
+                </object>
+                <script>
+                  window.addEventListener('load', function() {
+                    setTimeout(function() {
+                      window.print();
+                    }, 1000);
+                  });
+                </script>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+        };
         
-        toast({ 
-          title: 'PDF Generated', 
-          description: 'Certificate PDF downloaded', 
-          variant: 'success' 
-        });
+        reader.readAsDataURL(blob);
       }
 
       // Reset form
@@ -218,6 +273,31 @@ export default function Page() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   placeholder="Enter organization or person name (optional)"
                 />
+              </div>
+
+              {/* Background Visibility Toggle */}
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <span className="block text-sm font-semibold text-gray-700">Background Visibility</span>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Show or hide background image in the certificate
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setBackgroundVisible(!backgroundVisible)}
+                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${
+                      backgroundVisible ? 'bg-green-600' : 'bg-gray-300'
+                    }`}
+                    type="button"
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        backgroundVisible ? 'translate-x-8' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </label>
               </div>
 
               {/* Dynamic Form Fields */}

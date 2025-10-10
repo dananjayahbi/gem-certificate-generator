@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
         data: {
           normalMoveAmount: 0.5,
           shiftMoveAmount: 1.0,
+          defaultBackgroundVisible: true,
         },
       });
     }
@@ -47,7 +48,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { normalMoveAmount, shiftMoveAmount } = body;
+    const { normalMoveAmount, shiftMoveAmount, defaultBackgroundVisible } = body;
 
     // Validate input
     if (normalMoveAmount !== undefined && (normalMoveAmount <= 0 || normalMoveAmount > 10)) {
@@ -73,6 +74,7 @@ export async function PUT(request: NextRequest) {
         data: {
           normalMoveAmount: normalMoveAmount ?? 0.5,
           shiftMoveAmount: shiftMoveAmount ?? 1.0,
+          defaultBackgroundVisible: defaultBackgroundVisible ?? true,
         },
       });
     } else {
@@ -82,6 +84,7 @@ export async function PUT(request: NextRequest) {
         data: {
           ...(normalMoveAmount !== undefined && { normalMoveAmount }),
           ...(shiftMoveAmount !== undefined && { shiftMoveAmount }),
+          ...(defaultBackgroundVisible !== undefined && { defaultBackgroundVisible }),
         },
       });
     }
