@@ -1,14 +1,15 @@
 "use client";
 
 import authApi from "./authService";
-import { API_ENDPOINTS, buildApiUrl } from "@/lib/constants/apiEndpoints";
+import { API_ENDPOINTS } from "@/lib/constants/apiEndpoints";
 
 const userStatsService = {
-  // Get user statistics
+  // Get user statistics (placeholder - endpoint doesn't exist yet)
   getUserStats: async (userId) => {
     try {
-      const response = await authApi.get(buildApiUrl(API_ENDPOINTS.USER.STATS(userId)));
-      return response.data;
+      // TODO: Implement stats endpoint in backend
+      console.warn("User stats endpoint not implemented yet");
+      return { certificates: 0, templates: 0 };
     } catch (error) {
       console.error("Error fetching user stats:", error);
       throw error;
@@ -18,7 +19,7 @@ const userStatsService = {
   // Get current user profile
   getCurrentUserProfile: async () => {
     try {
-      const response = await authApi.get(buildApiUrl(API_ENDPOINTS.USER.PROFILE));
+      const response = await authApi.get(API_ENDPOINTS.USER.PROFILE);
       return response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -29,7 +30,7 @@ const userStatsService = {
   // Update user profile
   updateUserProfile: async (profileData) => {
     try {
-      const response = await authApi.put(buildApiUrl(API_ENDPOINTS.USER.UPDATE_PROFILE), profileData);
+      const response = await authApi.put(API_ENDPOINTS.USER.UPDATE_PROFILE, profileData);
       return response.data;
     } catch (error) {
       console.error("Error updating user profile:", error);
@@ -37,11 +38,12 @@ const userStatsService = {
     }
   },
 
-  // Get user permissions
+  // Get user permissions (placeholder - endpoint doesn't exist yet)
   getUserPermissions: async () => {
     try {
-      const response = await authApi.get(buildApiUrl(API_ENDPOINTS.USER.PERMISSIONS));
-      return response.data;
+      // TODO: Implement permissions endpoint in backend
+      console.warn("User permissions endpoint not implemented yet");
+      return [];
     } catch (error) {
       console.error("Error fetching user permissions:", error);
       throw error;

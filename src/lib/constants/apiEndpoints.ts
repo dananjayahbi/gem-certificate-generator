@@ -19,6 +19,8 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/api/users/${id}`,
     UPDATE: (id: string) => `/api/users/${id}`,
     DELETE: (id: string) => `/api/users/${id}`,
+    PROFILE: '/api/profile',
+    UPDATE_PROFILE: '/api/profile',
   },
 
   // Template Endpoints
