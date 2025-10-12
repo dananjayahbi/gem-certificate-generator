@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Certificate {
+  id                String   @id @default(cuid())
+  certificateNumber String?  @unique  // Short, unique certificate ID (e.g., CERT-2024-001)
+  templateId        String
+  recipientName     String
+  issuedTo          String?   // Person/organization the certificate is issued to
+  fieldValues       String   // JSON string containing field data
+  backgroundVisible Boolean  @default(true)  // Toggle for showing/hiding background in output
+  pdfUrl            String?
+  createdBy         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("certificates")
+}
+
+model CertificateTemplate {
+  id                 String   @id @default(cuid())
+  name               String
+  description        String?
+  backgroundImageUrl String
+  width              Float    // Width in mm
+  height             Float    // Height in mm
+  fields             String   // JSON string containing field definitions
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("certificate_templates")
+}
+
+model Settings {
+  id                        String   @id @default(cuid())
+  normalMoveAmount          Float    @default(0.5)  // Movement in mm for normal arrow key press
+  shiftMoveAmount           Float    @default(1.0)  // Movement in mm for Shift + arrow key press
+  defaultBackgroundVisible  Boolean  @default(true) // Default background visibility for new certificates
+  updatedAt                 DateTime @updatedAt
+
+  @@map("settings")
+}

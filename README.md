@@ -1,8 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Certificate Generator
+
+A modern certificate generator and management system built with Next.js 15, Prisma, and SQLite.
+
+## Features
+
+- 🎓 Create and manage digital certificates
+- 👥 User management with role-based access (Admin/User)
+- 🎨 Customizable certificate templates
+- 🔐 Secure authentication system
+- 📊 Certificate tracking and analytics
+- 💾 SQLite database with Prisma ORM
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Database:** SQLite with Prisma ORM
+- **UI:** Tailwind CSS, Lucide React Icons
+- **Authentication:** JWT-based auth with cookies
+- **Forms:** React Hook Form + Zod validation
+- **Language:** TypeScript/JavaScript
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd gem-certificate-generator
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up the database:
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
