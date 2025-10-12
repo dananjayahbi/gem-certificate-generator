@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/useToast";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -27,12 +26,7 @@ export default function LoginPage() {
       return;
     }
 
-    const result = await login(
-      { email, password },
-      {
-        rememberDays: rememberMe ? 30 : 7,
-      }
-    );
+    const result = await login({ email, password });
 
     if (result.ok) {
       toast({
@@ -183,28 +177,8 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Remember Me and Forgot Password */}
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setRememberMe(!rememberMe)}
-                      className={`w-4 h-4 rounded flex items-center justify-center border-2 transition-colors ${
-                        rememberMe 
-                          ? 'bg-[#3874FF] border-[#3874FF]' 
-                          : 'bg-white border-[#CBD0DD]'
-                      }`}
-                    >
-                      {rememberMe && (
-                        <svg className="w-2 h-1.5 stroke-white fill-none" viewBox="0 0 6 4" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m1 2 2 2 2-2" />
-                        </svg>
-                      )}
-                    </button>
-                    <span className="text-[12.8px] font-semibold leading-[1.2] text-[#525B75] font-nunito">
-                      Remember me
-                    </span>
-                  </div>
+                {/* Forgot Password */}
+                <div className="flex justify-end items-center">
                   <a href="#" className="text-[12.8px] font-semibold leading-[1.2] text-[#3874FF] font-nunito">
                     Forgot Password?
                   </a>

@@ -2,7 +2,6 @@
 
 import axios from "axios";
 import Cookies from "js-cookie";
-import { API_ENDPOINTS, buildApiUrl } from "@/lib/constants/apiEndpoints";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -29,58 +28,20 @@ authApi.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle 401 errors
 authApi.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const original = error.config;
-
-    if (error.response?.status === 401 && !original._retry) {
-      original._retry = true;
-
-      try {
-        const refreshToken = Cookies.get("refresh_token");
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-
-        const response = await axios.post(
-          buildApiUrl(API_ENDPOINTS.AUTH.REFRESH_TOKEN),
-          { refresh: refreshToken }
-        );
-
-        const { access } = response.data;
-        if (access) {
-          // Update the access token
-          Cookies.set("access_token", access, {
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "Strict",
-            path: "/",
-          });
-
-          // Retry the original request
-          original.headers.Authorization = `Bearer ${access}`;
-          return authApi(original);
-        }
-      } catch (refreshError) {
-        // Refresh failed, clear tokens and redirect to login
-        Cookies.remove("access_token");
-        Cookies.remove("refresh_token");
-        Cookies.remove("access_token_expires_at");
-        Cookies.remove("refresh_token_expires_at");
-        localStorage.removeItem("currentUser");
+    if (error.response?.status === 401) {
+      // Unauthorized - redirect to login
+      if (typeof window !== 'undefined') {
         localStorage.removeItem("role");
-        
-        // Dispatch event to update components
-        window.dispatchEvent(new Event("currentUser:updated"));
-        
-        // Redirect to login
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("userId");
+        window.location.href = "/login";
       }
     }
-
     return Promise.reject(error);
   }
 );
@@ -122,36 +83,6 @@ export const authService = {
       return expiryDate <= new Date();
     } catch (error) {
       return true;
-    }
-  },
-
-  // Manually refresh token
-  refreshToken: async () => {
-    try {
-      const refreshToken = Cookies.get("refresh_token");
-      if (!refreshToken) {
-        throw new Error("No refresh token available");
-      }
-
-      const response = await axios.post(
-        buildApiUrl(API_ENDPOINTS.AUTH.REFRESH_TOKEN),
-        { refresh: refreshToken }
-      );
-
-      const { access } = response.data;
-      if (access) {
-        Cookies.set("access_token", access, {
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "Strict",
-          path: "/",
-        });
-        return access;
-      }
-      
-      throw new Error("No access token received");
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      throw error;
     }
   },
 };
